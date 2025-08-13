@@ -23,6 +23,10 @@ if (!$event) {
     exit;
 }
 
+// Ambil paddock slot terkait event
+$slots_result = $db->query("SELECT * FROM paddock_slot WHERE id_event = $id_event ORDER BY id_slot ASC");
+$paddock_slots = $slots_result->fetch_all(MYSQLI_ASSOC);
+
 // Proses form saat disubmit
 if (isset($_POST['simpan'])) {
     $judul_event     = $_POST['judul_event'];
@@ -36,8 +40,6 @@ if (isset($_POST['simpan'])) {
     if (isset($_FILES['poster']) && $_FILES['poster']['error'] == 0) {
         $folder = "../uploads/poster/";
         if (!file_exists($folder)) mkdir($folder, 0777, true);
-
-        // Hapus poster lama jika ada
         if ($nama_file && file_exists($folder . $nama_file)) unlink($folder . $nama_file);
 
         $poster = $_FILES['poster']['name'];
@@ -46,115 +48,117 @@ if (isset($_POST['simpan'])) {
         move_uploaded_file($tmp, $folder . $nama_file);
     }
 
-    // Update database
+    // Update event
     $stmt = $db->prepare("UPDATE event SET judul_event=?, deskripsi_event=?, tanggal_mulai=?, tanggal_selesai=?, lokasi_event=?, poster_path=? WHERE id_event=?");
     $stmt->bind_param("ssssssi", $judul_event, $deskripsi_event, $tanggal_mulai, $tanggal_selesai, $lokasi_event, $nama_file, $id_event);
+    $stmt->execute();
 
-    if ($stmt->execute()) {
-        echo "<script>
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil',
-                text: 'Event berhasil diperbarui',
-                showConfirmButton: false,
-                timer: 1500
-            }).then(() => window.location='data_event.php');
-        </script>";
-    } else {
-        echo "<script>
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal',
-                text: 'Event gagal diperbarui'
-            });
-        </script>";
+    // Update paddock slots
+    // Hapus semua slot lama
+    $db->query("DELETE FROM paddock_slot WHERE id_event = $id_event");
+
+    // Simpan slot baru dari form
+    if (!empty($_POST['nama_slot']) && is_array($_POST['nama_slot'])) {
+        $slots = $_POST['nama_slot'];
+        $stmt_slot = $db->prepare("INSERT INTO paddock_slot (id_event, nomor_slot) VALUES (?, ?)");
+        foreach ($slots as $slot) {
+            $slot = trim($slot);
+            if ($slot !== "") {
+                $stmt_slot->bind_param("is", $id_event, $slot);
+                $stmt_slot->execute();
+            }
+        }
     }
+
+    echo "<script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil',
+            text: 'Event dan paddock berhasil diperbarui',
+            showConfirmButton: false,
+            timer: 1500
+        }).then(() => window.location='data_event.php');
+    </script>";
 }
 ?>
 
-<!-- Konten Utama -->
 <main class="p-6 transition-all duration-300 lg:ml-64">
-    
-    <!-- Header -->
+
     <div class="px-6 py-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-blue-500 rounded-t-2xl mb-6">
         <div>
-            <h1 class="text-3xl font-bold text-white">Edit Event</h1>
-            <p class="text-blue-200 mt-1">Perbarui data event di bawah ini.</p>
+            <h1 class="text-3xl font-bold text-white">Edit Event & Paddock</h1>
+            <p class="text-blue-200 mt-1">Perbarui data event dan paddock slot di bawah ini.</p>
         </div>
     </div>
 
-    <!-- Form Container -->
     <div class="w-full max-w-full bg-gray-50 border border-gray-100 rounded-2xl p-6 shadow-sm">
-
         <form method="POST" enctype="multipart/form-data" class="space-y-6">
-
-            <!-- Judul Event -->
+            <!-- Event Details -->
             <div>
                 <label class="block mb-2 font-semibold text-gray-700">Judul Event</label>
-                <input type="text" name="judul_event" value="<?= htmlspecialchars($event['judul_event']) ?>"
-                    class="w-full border-gray-300 rounded-lg p-3 shadow-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
-                    placeholder="Masukkan judul event" required>
+                <input type="text" name="judul_event" value="<?= htmlspecialchars($event['judul_event']) ?>" class="w-full border p-2 rounded" required>
             </div>
-
-            <!-- Deskripsi Event -->
             <div>
                 <label class="block mb-2 font-semibold text-gray-700">Deskripsi Event</label>
-                <textarea name="deskripsi_event" rows="5"
-                    class="w-full border-gray-300 rounded-lg p-3 shadow-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
-                    placeholder="Tuliskan deskripsi event secara detail..." required><?= htmlspecialchars($event['deskripsi_event']) ?></textarea>
+                <textarea name="deskripsi_event" rows="5" class="w-full border p-2 rounded" required><?= htmlspecialchars($event['deskripsi_event']) ?></textarea>
             </div>
-
-            <!-- Tanggal Mulai & Selesai -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div>
-                    <label class="block mb-2 font-semibold text-gray-700">Tanggal Mulai</label>
-                    <input type="date" name="tanggal_mulai" value="<?= $event['tanggal_mulai'] ?>"
-                        class="w-full border-gray-300 rounded-lg p-3 shadow-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
-                        required>
-                </div>
-                <div>
-                    <label class="block mb-2 font-semibold text-gray-700">Tanggal Selesai</label>
-                    <input type="date" name="tanggal_selesai" value="<?= $event['tanggal_selesai'] ?>"
-                        class="w-full border-gray-300 rounded-lg p-3 shadow-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
-                        required>
-                </div>
+            <div class="grid grid-cols-2 gap-6">
+                <input type="date" name="tanggal_mulai" value="<?= $event['tanggal_mulai'] ?>" required>
+                <input type="date" name="tanggal_selesai" value="<?= $event['tanggal_selesai'] ?>" required>
             </div>
-
-            <!-- Lokasi -->
             <div>
-                <label class="block mb-2 font-semibold text-gray-700">Lokasi Event</label>
-                <input type="text" name="lokasi_event" value="<?= htmlspecialchars($event['lokasi_event']) ?>"
-                    class="w-full border-gray-300 rounded-lg p-3 shadow-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
-                    placeholder="Contoh: Jakarta Convention Center" required>
+                <input type="text" name="lokasi_event" value="<?= htmlspecialchars($event['lokasi_event']) ?>" placeholder="Lokasi event" required class="w-full border p-2 rounded">
             </div>
-
-            <!-- Poster -->
             <div>
                 <label class="block mb-2 font-semibold text-gray-700">Poster Event</label>
                 <?php if ($event['poster_path'] && file_exists("../uploads/poster/" . $event['poster_path'])): ?>
-                    <img src="../uploads/poster/<?= $event['poster_path'] ?>" alt="Poster" class="mb-3 w-40 h-auto rounded-lg shadow-md">
+                    <img src="../uploads/poster/<?= $event['poster_path'] ?>" alt="Poster" class="mb-3 w-40 h-auto rounded-lg">
                 <?php endif; ?>
-                <input type="file" name="poster" accept="image/*"
-                    class="w-full border-gray-300 rounded-lg p-3 shadow-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100">
-                <p class="text-sm text-gray-500 mt-1">Upload poster baru untuk mengganti poster lama.</p>
+                <input type="file" name="poster" accept="image/*">
             </div>
 
-            <!-- Submit Button -->
-            <div class="flex justify-end gap-4">
-                <button type="submit" name="simpan"
-                    class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg shadow-md transition">
-                    Perbarui Event
-                </button>
-                <a href="data_event.php"
-                    class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-lg shadow-md transition">
-                    Batal
-                </a>
+            <!-- Paddock Slots -->
+            <div id="paddock-container">
+                <label class="block mb-2 font-semibold text-gray-700">Paddock Slots</label>
+                <?php if (!empty($paddock_slots)): ?>
+                    <?php foreach ($paddock_slots as $slot): ?>
+                        <div class="flex gap-2 mb-2 paddock-row">
+                            <input type="text" name="nama_slot[]" value="<?= htmlspecialchars($slot['nomor_slot']) ?>" placeholder="Nomor Slot" required class="border p-2 rounded">
+                            <button type="button" onclick="removeRow(this)">-</button>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="flex gap-2 mb-2 paddock-row">
+                        <input type="text" name="nama_slot[]" placeholder="Nomor Slot" required class="border p-2 rounded">
+                        <button type="button" onclick="removeRow(this)">-</button>
+                    </div>
+                <?php endif; ?>
             </div>
+            <button type="button" onclick="addRow()">Tambah Slot +</button>
 
+            <div class="flex justify-end gap-4 mt-4">
+                <button type="submit" name="simpan" class="bg-blue-600 text-white px-4 py-2 rounded">Perbarui Event</button>
+                <a href="data_event.php" class="bg-gray-400 text-white px-4 py-2 rounded">Batal</a>
+            </div>
         </form>
-
     </div>
-
 </main>
+
+<script>
+function addRow() {
+    const container = document.getElementById('paddock-container');
+    const div = document.createElement('div');
+    div.classList.add('flex', 'gap-2', 'mb-2', 'paddock-row');
+    div.innerHTML = `
+        <input type="text" name="nama_slot[]" placeholder="Nomor Slot" required class="border p-2 rounded">
+        <button type="button" onclick="removeRow(this)">-</button>
+    `;
+    container.appendChild(div);
+}
+
+function removeRow(button) {
+    button.parentElement.remove();
+}
+</script>
 
 <?php require 'templates/footer.php'; ?>
