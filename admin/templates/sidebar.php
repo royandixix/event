@@ -4,30 +4,29 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Panel</title>
-  
+
   <!-- Google Icons & Tailwind -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Animate.css & SweetAlert2 -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-  
-  
+  <!-- Animate.css & FontAwesome & SweetAlert2 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
+        integrity="sha512-p1Cm9oWw6Z0XU0v3pP1xOZo2jR9Vx/3yjAA5yX8TJ+U3qZK9+4iF6xQzXkQKqZZR0e2xC0+m4lIbQhlR6e+vKg==" 
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="bg-gray-50">
 
   <!-- Tombol Toggle Sidebar (Mobile) -->
   <button id="sidebarToggle"
-    class="lg:hidden fixed bottom-6 right-6 z-50 w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-blue-500 hover:scale-110 transition duration-300">
+          class="lg:hidden fixed bottom-6 right-6 z-50 w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-blue-500 hover:scale-110 transition duration-300">
     <span class="material-icons">menu</span>
   </button>
 
   <!-- Tombol Logout (Kiri Bawah) -->
   <button id="logoutBtn" title="Logout"
-    class="fixed bottom-6 left-6 z-50 w-14 h-14 bg-red-500 text-white rounded-full flex items-center justify-center shadow-xl hover:bg-red-600 hover:rotate-12 hover:scale-110 transition-all duration-300">
+          class="fixed bottom-6 left-6 z-50 w-14 h-14 bg-red-500 text-white rounded-full flex items-center justify-center shadow-xl hover:bg-red-600 hover:rotate-12 hover:scale-110 transition-all duration-300">
     <span class="material-icons">logout</span>
   </button>
 
@@ -36,9 +35,7 @@
 
   <!-- Sidebar -->
   <aside id="sidebar"
-    class="bg-white text-gray-800 w-64 fixed top-16 left-0 bottom-0 flex flex-col shadow-2xl transform -translate-x-full transition-transform duration-300 z-40 lg:translate-x-0">
-
-    <!-- Menu -->
+         class="bg-white text-gray-800 w-64 fixed top-16 left-0 bottom-0 flex flex-col shadow-2xl transform -translate-x-full transition-transform duration-300 z-40 lg:translate-x-0">
     <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
       <a href="index.php" class="flex items-center p-3 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition transform hover:translate-x-1 hover:shadow">
         <span class="material-icons text-blue-500 mr-3">dashboard</span> Dashboard
@@ -61,7 +58,6 @@
   <!-- Header -->
   <header class="bg-white shadow-md fixed top-0 left-0 right-0 z-30 border-b border-gray-100">
     <div class="flex items-center justify-between px-4 lg:px-6 h-16">
-      
       <!-- Judul -->
       <a href="index.php" class="flex items-center space-x-2">
         <span class="material-icons text-blue-500">admin_panel_settings</span>
@@ -84,11 +80,6 @@
   <main class="ml-0 lg:ml-64 mt-16 p-4">
     <!-- Isi konten admin di sini -->
   </main>
-
-
-
-</body>
-</html>
 
   <!-- Script -->
   <script>
@@ -158,3 +149,4 @@
   </script>
 </body>
 </html>
+ 

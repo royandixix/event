@@ -3,14 +3,57 @@ require '../function/config.php';
 require 'templates/navbar.php';
 require 'templates/header_paddcok.php';
 
-// Ambil data slot paddock beserta booking
-$slot_query = mysqli_query($db, "SELECT s.id_slot, s.nomor_slot, 
-    IF(b.id_booking IS NULL, 'tersedia', 'terisi') AS status,
-    b.nama_pesanan
+// Ambil ID event dari GET atau default 1
+$id_event = $_GET['id_event'] ?? 1;
+
+// Jika form disubmit
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $nama_pesanan = mysqli_real_escape_string($db, $_POST['nama_pesanan']);
+    $nama_tim     = mysqli_real_escape_string($db, $_POST['nama_tim']);
+    $nomor_wa     = mysqli_real_escape_string($db, $_POST['nomor_wa']);
+    $slot_id      = intval($_POST['slot_id']);
+
+    if (!$slot_id) {
+        die("Slot belum dipilih!");
+    }
+
+    // Cek status slot
+    $cek_slot = mysqli_query($db, "SELECT status FROM paddock_slot WHERE id_slot = $slot_id");
+    $slot     = mysqli_fetch_assoc($cek_slot);
+
+    if (!$slot) {
+        die("Slot tidak ditemukan!");
+    }
+
+    if ($slot['status'] === 'terisi') {
+        die("Maaf, slot ini sudah terisi!");
+    }
+
+    // Simpan ke paddock_booking
+    $insert = mysqli_query($db, "
+        INSERT INTO paddock_booking (slot_id, nama_pesanan, nama_tim, nomor_wa)
+        VALUES ($slot_id, '$nama_pesanan', '$nama_tim', '$nomor_wa')
+    ");
+
+    if ($insert) {
+        mysqli_query($db, "UPDATE paddock_slot SET status = 'terisi' WHERE id_slot = $slot_id");
+        echo "<script>alert('Pendaftaran berhasil!'); window.location='pendaftaran.php?id_event=$id_event';</script>";
+        exit;
+    } else {
+        die("Gagal mendaftar: " . mysqli_error($db));
+    }
+}
+
+// Ambil semua slot untuk event ini
+$slot_query = mysqli_query($db, "
+    SELECT s.id_slot, s.nomor_slot, s.status, b.nama_pesanan
     FROM paddock_slot s
     LEFT JOIN paddock_booking b ON s.id_slot = b.slot_id
-    ORDER BY s.nomor_slot ASC");
+    WHERE s.id_event = $id_event
+    ORDER BY s.nomor_slot ASC
+");
 ?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -20,28 +63,28 @@ $slot_query = mysqli_query($db, "SELECT s.id_slot, s.nomor_slot,
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gradient-to-r from-blue-200 via-white to-white min-h-screen">
-    <div class="container mx-auto px-4 py-8 max-w-4xl">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
         <h1 class="text-3xl font-bold text-blue-800 mb-4">Form Pendaftaran Paddock</h1>
 
-        <form action="proses_pendaftaran.php" method="POST" class="bg-white p-6 rounded-xl shadow-md space-y-6">
+        <form action="" method="POST" class="bg-white p-6 rounded-xl shadow-md space-y-6">
             <h2 class="text-lg font-bold text-blue-800 bg-blue-100 px-5 py-2 rounded-full inline-block">DATA PENDAFTAR</h2>
             <input type="text" name="nama_pesanan" placeholder="Nama Pesanan" class="w-full p-3 border rounded-lg" required>
             <input type="text" name="nama_tim" placeholder="Nama Tim" class="w-full p-3 border rounded-lg" required>
             <input type="text" name="nomor_wa" placeholder="Nomor WhatsApp" class="w-full p-3 border rounded-lg" required>
 
             <h2 class="text-lg font-bold text-blue-800 bg-blue-100 px-5 py-2 rounded-full inline-block mt-4">PILIH SLOT PADDOCK</h2>
-            <div class="flex flex-wrap gap-2 mt-4">
+            <div class="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-4 mt-4">
                 <?php while ($slot = mysqli_fetch_assoc($slot_query)) : ?>
                     <?php if ($slot['status'] == 'terisi') : ?>
-                        <button type="button" class="bg-red-500 text-white px-4 py-2 rounded cursor-not-allowed" disabled
-                            title="Diambil oleh: <?= htmlspecialchars($slot['nama_pesanan']) ?>">
+                        <div class="bg-red-500 text-white p-4 rounded-lg text-center shadow cursor-not-allowed"
+                             title="Diambil oleh: <?= htmlspecialchars($slot['nama_pesanan']) ?>">
                             <?= htmlspecialchars($slot['nomor_slot']); ?>
-                        </button>
-                    <?php else : ?>
-                        <button type="button" onclick="pilihSlot(<?= $slot['id_slot']; ?>, this)"
-                            class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                        </div>
+                    <?php else: ?>
+                        <div onclick="pilihSlot(<?= $slot['id_slot']; ?>, this)"
+                             class="bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-lg text-center shadow cursor-pointer">
                             <?= htmlspecialchars($slot['nomor_slot']); ?>
-                        </button>
+                        </div>
                     <?php endif; ?>
                 <?php endwhile; ?>
             </div>
@@ -60,6 +103,7 @@ $slot_query = mysqli_query($db, "SELECT s.id_slot, s.nomor_slot,
             document.getElementById('slot_id').value = id;
         }
     </script>
+
     <?php require 'templates/footer.php'; ?>
 </body>
 </html>

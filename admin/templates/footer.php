@@ -1,4 +1,4 @@
-<!-- Footer -->
-<footer class="bg-white shadow-inner mt-10 p-4 text-center text-gray-500 text-sm">
-  &copy; <?php echo date('Y'); ?> Admin Panel - All rights reserved.
-</footer>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -24,40 +24,54 @@ if (!$event) {
 }
 
 // Ambil paddock slot terkait event
-$slots_result = $db->query("SELECT * FROM paddock_slot WHERE id_event = $id_event ORDER BY id_slot ASC");
+$stmt_slots = $db->prepare("SELECT * FROM paddock_slot WHERE id_event = ? ORDER BY id_slot ASC");
+$stmt_slots->bind_param("i", $id_event);
+$stmt_slots->execute();
+$slots_result = $stmt_slots->get_result();
 $paddock_slots = $slots_result->fetch_all(MYSQLI_ASSOC);
 
 // Proses form saat disubmit
 if (isset($_POST['simpan'])) {
-    $judul_event     = $_POST['judul_event'];
-    $deskripsi_event = $_POST['deskripsi_event'];
+    $judul_event     = trim($_POST['judul_event']);
+    $deskripsi_event = trim($_POST['deskripsi_event']);
     $tanggal_mulai   = $_POST['tanggal_mulai'];
     $tanggal_selesai = $_POST['tanggal_selesai'];
-    $lokasi_event    = $_POST['lokasi_event'];
+    $lokasi_event    = trim($_POST['lokasi_event']);
+    $harga_event     = str_replace('.', '', $_POST['harga_event']); // hapus titik ribuan
+    $harga_event     = (int)$harga_event;
 
     // Upload poster baru jika ada
     $nama_file = $event['poster_path'];
     if (isset($_FILES['poster']) && $_FILES['poster']['error'] == 0) {
         $folder = "../uploads/poster/";
         if (!file_exists($folder)) mkdir($folder, 0777, true);
+
+        // Hapus poster lama
         if ($nama_file && file_exists($folder . $nama_file)) unlink($folder . $nama_file);
 
-        $poster = $_FILES['poster']['name'];
-        $tmp    = $_FILES['poster']['tmp_name'];
-        $nama_file = time() . "_" . basename($poster);
-        move_uploaded_file($tmp, $folder . $nama_file);
+        // Validasi tipe file
+        $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];
+        if (!in_array($_FILES['poster']['type'], $allowed_types)) {
+            echo "<script>alert('Hanya gambar JPEG, PNG, GIF yang diperbolehkan');</script>";
+        } else {
+            $poster = $_FILES['poster']['name'];
+            $tmp    = $_FILES['poster']['tmp_name'];
+            $nama_file = time() . "_" . basename($poster);
+            move_uploaded_file($tmp, $folder . $nama_file);
+        }
     }
 
     // Update event
-    $stmt = $db->prepare("UPDATE event SET judul_event=?, deskripsi_event=?, tanggal_mulai=?, tanggal_selesai=?, lokasi_event=?, poster_path=? WHERE id_event=?");
-    $stmt->bind_param("ssssssi", $judul_event, $deskripsi_event, $tanggal_mulai, $tanggal_selesai, $lokasi_event, $nama_file, $id_event);
-    $stmt->execute();
+    $stmt_update = $db->prepare("UPDATE event SET judul_event=?, deskripsi_event=?, tanggal_mulai=?, tanggal_selesai=?, lokasi_event=?, poster_path=?, harga_event=? WHERE id_event=?");
+    $stmt_update->bind_param("ssssssii", $judul_event, $deskripsi_event, $tanggal_mulai, $tanggal_selesai, $lokasi_event, $nama_file, $harga_event, $id_event);
+    $stmt_update->execute();
 
-    // Update paddock slots
-    // Hapus semua slot lama
-    $db->query("DELETE FROM paddock_slot WHERE id_event = $id_event");
+    // Hapus paddock lama
+    $stmt_delete = $db->prepare("DELETE FROM paddock_slot WHERE id_event = ?");
+    $stmt_delete->bind_param("i", $id_event);
+    $stmt_delete->execute();
 
-    // Simpan slot baru dari form
+    // Tambah paddock baru
     if (!empty($_POST['nama_slot']) && is_array($_POST['nama_slot'])) {
         $slots = $_POST['nama_slot'];
         $stmt_slot = $db->prepare("INSERT INTO paddock_slot (id_event, nomor_slot) VALUES (?, ?)");
@@ -83,17 +97,15 @@ if (isset($_POST['simpan'])) {
 ?>
 
 <main class="p-6 transition-all duration-300 lg:ml-64">
-
     <div class="px-6 py-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-blue-500 rounded-t-2xl mb-6">
         <div>
             <h1 class="text-3xl font-bold text-white">Edit Event & Paddock</h1>
-            <p class="text-blue-200 mt-1">Perbarui data event dan paddock slot di bawah ini.</p>
+            <p class="text-blue-200 mt-1">Perbarui data event, harga, dan paddock slot di bawah ini.</p>
         </div>
     </div>
 
     <div class="w-full max-w-full bg-gray-50 border border-gray-100 rounded-2xl p-6 shadow-sm">
         <form method="POST" enctype="multipart/form-data" class="space-y-6">
-            <!-- Event Details -->
             <div>
                 <label class="block mb-2 font-semibold text-gray-700">Judul Event</label>
                 <input type="text" name="judul_event" value="<?= htmlspecialchars($event['judul_event']) ?>" class="w-full border p-2 rounded" required>
@@ -110,6 +122,22 @@ if (isset($_POST['simpan'])) {
                 <input type="text" name="lokasi_event" value="<?= htmlspecialchars($event['lokasi_event']) ?>" placeholder="Lokasi event" required class="w-full border p-2 rounded">
             </div>
             <div>
+                <label class="block mb-2 font-semibold text-gray-700">Harga Event</label>
+                <div class="flex">
+                    <span class="inline-flex items-center px-3 bg-gray-200 rounded-l">Rp</span>
+                    <input type="text" id="harga_event" name="harga_event" value="<?= number_format($event['harga_event'], 0, '.', '.') ?>" placeholder="0" required class="w-full border p-2 rounded-r">
+                </div>
+            </div>
+
+            <script>
+                const hargaInput = document.getElementById('harga_event');
+                hargaInput.addEventListener('input', function() {
+                    let value = this.value.replace(/\D/g, '');
+                    this.value = new Intl.NumberFormat('id-ID').format(value);
+                });
+            </script>
+
+            <div>
                 <label class="block mb-2 font-semibold text-gray-700">Poster Event</label>
                 <?php if ($event['poster_path'] && file_exists("../uploads/poster/" . $event['poster_path'])): ?>
                     <img src="../uploads/poster/<?= $event['poster_path'] ?>" alt="Poster" class="mb-3 w-40 h-auto rounded-lg">
@@ -117,7 +145,6 @@ if (isset($_POST['simpan'])) {
                 <input type="file" name="poster" accept="image/*">
             </div>
 
-            <!-- Paddock Slots -->
             <div id="paddock-container">
                 <label class="block mb-2 font-semibold text-gray-700">Paddock Slots</label>
                 <?php if (!empty($paddock_slots)): ?>
@@ -145,20 +172,20 @@ if (isset($_POST['simpan'])) {
 </main>
 
 <script>
-function addRow() {
-    const container = document.getElementById('paddock-container');
-    const div = document.createElement('div');
-    div.classList.add('flex', 'gap-2', 'mb-2', 'paddock-row');
-    div.innerHTML = `
-        <input type="text" name="nama_slot[]" placeholder="Nomor Slot" required class="border p-2 rounded">
-        <button type="button" onclick="removeRow(this)">-</button>
-    `;
-    container.appendChild(div);
-}
+    function addRow() {
+        const container = document.getElementById('paddock-container');
+        const div = document.createElement('div');
+        div.classList.add('flex', 'gap-2', 'mb-2', 'paddock-row');
+        div.innerHTML = `
+            <input type="text" name="nama_slot[]" placeholder="Nomor Slot" required class="border p-2 rounded">
+            <button type="button" onclick="removeRow(this)">-</button>
+        `;
+        container.appendChild(div);
+    }
 
-function removeRow(button) {
-    button.parentElement.remove();
-}
+    function removeRow(button) {
+        button.parentElement.remove();
+    }
 </script>
 
 <?php require 'templates/footer.php'; ?>
