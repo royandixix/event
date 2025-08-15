@@ -139,7 +139,7 @@ $hargaPendaftaran = [
         <p class="text-sm text-blue-700">Silakan pilih apakah Anda mendaftar sebagai peserta atau manajer.</p>
         <div class="flex flex-col gap-3">
             <a href="peserta.php" class="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition">Peserta</a>
-            <a href="manajer.php" class="bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg transition">Manajer</a>
+            <a href="manejer.php" class="bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg transition">Manajer</a>
         </div>
         <button onclick="closeModal('general')" class="mt-4 text-sm text-blue-700 hover:underline">Batal</button>
     </div>

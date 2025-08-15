@@ -3,60 +3,50 @@ require 'templates/header.php';
 require 'templates/sidebar.php';
 require '../function/config.php';
 
-// Fungsi generate kode full event otomatis
-function generateKodeFull($db) {
-    $prefix = "EVT";
-    $tanggal = date('Ymd'); // format YYYYMMDD
-
-    $stmt = $db->prepare("SELECT COUNT(*) as total FROM event WHERE DATE(created_at) = CURDATE()");
-    $stmt->execute();
-    $result = $stmt->get_result()->fetch_assoc();
-    $count = $result['total'] + 1;
-
-    return $prefix . $tanggal . '-' . str_pad($count, 3, '0', STR_PAD_LEFT);
-}
-
 if (isset($_POST['simpan'])) {
+    // Ambil data dari form
     $judul_event     = $_POST['judul_event'];
     $deskripsi_event = $_POST['deskripsi_event'];
     $tanggal_mulai   = $_POST['tanggal_mulai'];
     $tanggal_selesai = $_POST['tanggal_selesai'];
     $lokasi_event    = $_POST['lokasi_event'];
-    $harga_event     = $_POST['harga_event'];
-
-    // Data bank dari form
+    $harga_event     = preg_replace('/[^\d]/', '', $_POST['harga_event']); // format rupiah → angka
     $bank_tujuan     = $_POST['bank_tujuan'];
     $no_rekening     = $_POST['no_rekening'];
     $nama_rekening   = $_POST['nama_pemilik'];
 
-    $kode_full = generateKodeFull($db);
-
     // Upload poster event
     $poster = $_FILES['poster']['name'];
-    $tmp    = $_FILES['poster']['tmp_name'];
+    $tmp_poster = $_FILES['poster']['tmp_name'];
+    $nama_file_poster = null;
+
     if ($poster) {
-        $folder = "../uploads/poster/";
-        if (!file_exists($folder)) mkdir($folder, 0777, true);
-        $nama_file = time() . "_" . basename($poster);
-        move_uploaded_file($tmp, $folder . $nama_file);
-    } else {
-        $nama_file = null;
+        $folder_poster = "../uploads/poster/";
+        if (!file_exists($folder_poster)) mkdir($folder_poster, 0777, true);
+        $nama_file_poster = time() . "_" . basename($poster);
+        if (!move_uploaded_file($tmp_poster, $folder_poster . $nama_file_poster)) {
+            echo "<script>alert('Gagal upload poster!');</script>";
+            $nama_file_poster = null;
+        }
     }
 
-    // Simpan event
-    $stmt = $db->prepare("INSERT INTO event (judul_event, deskripsi_event, tanggal_mulai, tanggal_selesai, lokasi_event, poster_path, harga_event, kode_full) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("ssssssss", $judul_event, $deskripsi_event, $tanggal_mulai, $tanggal_selesai, $lokasi_event, $nama_file, $harga_event, $kode_full);
+    // Insert ke tabel event
+    $stmt = $db->prepare("INSERT INTO event 
+        (judul_event, deskripsi_event, tanggal_mulai, tanggal_selesai, lokasi_event, poster_path, harga_event) 
+        VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssssss", $judul_event, $deskripsi_event, $tanggal_mulai, $tanggal_selesai, $lokasi_event, $nama_file_poster, $harga_event);
 
     if ($stmt->execute()) {
         $id_event = $stmt->insert_id;
+        $kode_sementara = "EVT" . date('Ymd') . '-' . str_pad($id_event, 3, '0', STR_PAD_LEFT);
 
-        // Simpan paddock slots
+        // Insert paddock slots
         if (!empty($_POST['nama_slot']) && is_array($_POST['nama_slot'])) {
             $slots = $_POST['nama_slot'];
             $stmt_slot = $db->prepare("INSERT INTO paddock_slot (id_event, nomor_slot) VALUES (?, ?)");
             foreach ($slots as $slot) {
                 $stmt_slot->bind_param("is", $id_event, $slot);
-                $stmtgit_slot->execute();
+                $stmt_slot->execute();
             }
         }
 
@@ -68,16 +58,19 @@ if (isset($_POST['simpan'])) {
         // Upload logo bank
         $gambar_bank = $_FILES['gambar_bank']['name'];
         $tmp_gambar_bank = $_FILES['gambar_bank']['tmp_name'];
+        $nama_file_bank = null;
+
         if ($gambar_bank) {
             $folder_bank = "../uploads/bank/";
             if (!file_exists($folder_bank)) mkdir($folder_bank, 0777, true);
             $nama_file_bank = time() . "_" . basename($gambar_bank);
-            move_uploaded_file($tmp_gambar_bank, $folder_bank . $nama_file_bank);
-        } else {
-            $nama_file_bank = null;
+            if (!move_uploaded_file($tmp_gambar_bank, $folder_bank . $nama_file_bank)) {
+                echo "<script>alert('Gagal upload logo bank!');</script>";
+                $nama_file_bank = null;
+            }
         }
 
-        // Simpan invoice
+        // Insert ke tabel invoice
         $stmt_invoice = $db->prepare("INSERT INTO invoice 
             (nomor_invoice, id_event, total_harga, kode_unik, total_transfer, bank_tujuan, no_rekening, nama_pemilik_rekening, gambar_bank, status) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')");
@@ -90,7 +83,7 @@ if (isset($_POST['simpan'])) {
                 icon: 'success',
                 title: 'Event & Invoice Dibuat',
                 html: `
-                    <p>Event berhasil dibuat dengan kode <b>{$kode_full}</b></p>
+                    <p>Event berhasil dibuat dengan kode <b>{$kode_sementara}</b></p>
                     <hr>
                     <p><b>Nomor Invoice:</b> {$no_invoice}</p>
                     <p><b>Total yang harus dibayar:</b> Rp {$total_transfer}</p>
@@ -104,6 +97,7 @@ if (isset($_POST['simpan'])) {
                 confirmButtonText: 'OK'
             }).then(() => window.location='data_event.php');
         </script>";
+
     } else {
         echo "<script>
             Swal.fire({
@@ -115,6 +109,8 @@ if (isset($_POST['simpan'])) {
     }
 }
 ?>
+
+
 
 <main class="p-6 transition-all duration-300 lg:ml-64">
     <div class="px-6 py-6 bg-blue-500 rounded-t-2xl mb-6">
@@ -215,16 +211,16 @@ function removeRow(button) {
 
 // Format input harga ke Rupiah
 const hargaInput = document.getElementById('harga_event');
-hargaInput.addEventListener('keyup', function(e) {
+hargaInput.addEventListener('keyup', function() {
     this.value = formatRupiah(this.value, 'Rp ');
 });
 
 function formatRupiah(angka, prefix){
     let number_string = angka.replace(/[^,\d]/g, '').toString(),
-        split   	 = number_string.split(','),
-        sisa     	 = split[0].length % 3,
-        rupiah     	 = split[0].substr(0, sisa),
-        ribuan    	 = split[0].substr(sisa).match(/\d{3}/gi);
+        split         = number_string.split(','),
+        sisa          = split[0].length % 3,
+        rupiah        = split[0].substr(0, sisa),
+        ribuan        = split[0].substr(sisa).match(/\d{3}/gi);
         
     if (ribuan) {
         let separator = sisa ? '.' : '';
@@ -237,21 +233,5 @@ function formatRupiah(angka, prefix){
 </script>
 
 </main>
-
-<script>
-function addRow() {
-    const container = document.getElementById('paddock-container');
-    const div = document.createElement('div');
-    div.classList.add('flex', 'gap-2', 'mb-2', 'paddock-row');
-    div.innerHTML = `
-        <input type="text" name="nama_slot[]" placeholder="Nomor Slot (misal A1)" required class="border p-2 rounded">
-        <button type="button" onclick="removeRow(this)" class="bg-red-500 text-white px-2 rounded">-</button>
-    `;
-    container.appendChild(div);
-}
-function removeRow(button) {
-    button.parentElement.remove();
-}
-</script>
 
 <?php require 'templates/footer.php'; ?>
