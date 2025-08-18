@@ -3,9 +3,7 @@ require '../function/config.php';
 require 'templates/navbar.php';
 require 'templates/header.php';
 
-// Proses form submit
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Ambil data peserta dari POST
     $nama_peserta = $_POST['nama_peserta'] ?? '';
     $nama_tim = $_POST['nama_tim'] ?? '';
     $asal_provinsi = $_POST['asal_provinsi'] ?? '';
@@ -13,13 +11,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $whatsapp = $_POST['whatsapp'] ?? '';
     $voucher = $_POST['voucher'] ?? null;
 
-    // Data kelas array
     $kelas_arr = $_POST['kelas'] ?? [];
     $warna_kendaraan_arr = $_POST['warna_kendaraan'] ?? [];
     $tipe_kendaraan_arr = $_POST['tipe_kendaraan'] ?? [];
     $nomor_polisi_arr = $_POST['nomor_polisi'] ?? [];
 
-    // Upload foto peserta
     $foto_peserta = null;
     if (isset($_FILES['foto_peserta']) && $_FILES['foto_peserta']['error'] === UPLOAD_ERR_OK) {
         $tmp_name = $_FILES['foto_peserta']['tmp_name'];
@@ -28,60 +24,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $allowed_ext = ['jpg', 'jpeg', 'png', 'gif'];
 
         if (in_array($ext, $allowed_ext)) {
-            // Buat nama file unik
             $new_name = 'foto_peserta_' . time() . '.' . $ext;
             $upload_dir = '../uploads/foto_peserta/';
-
-            if (!is_dir($upload_dir)) {
-                mkdir($upload_dir, 0777, true);
-            }
-
+            if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
             if (move_uploaded_file($tmp_name, $upload_dir . $new_name)) {
                 $foto_peserta = $new_name;
             } else {
-                echo "<script>alert('Gagal upload foto peserta');</script>";
+                $error_msg = 'Gagal upload foto peserta.';
             }
         } else {
-            echo "<script>alert('Format foto tidak didukung, gunakan JPG/PNG/GIF');</script>";
+            $error_msg = 'Format foto tidak didukung, gunakan JPG/PNG/GIF.';
         }
     } else {
-        echo "<script>alert('Foto peserta wajib diupload');</script>";
+        $error_msg = 'Foto peserta wajib diupload.';
     }
 
-    // Jika foto berhasil diupload dan data peserta dasar valid
-    if ($foto_peserta && $nama_peserta && $nama_tim && $asal_provinsi && $email && $whatsapp) {
-        // Insert ke tabel peserta
+    if (empty($error_msg) && $foto_peserta && $nama_peserta && $nama_tim && $asal_provinsi && $email && $whatsapp) {
         $stmt = $db->prepare("INSERT INTO peserta (nama_peserta, nama_tim, foto_peserta, asal_provinsi, email, whatsapp, voucher) VALUES (?, ?, ?, ?, ?, ?, ?)");
         $stmt->bind_param("sssssss", $nama_peserta, $nama_tim, $foto_peserta, $asal_provinsi, $email, $whatsapp, $voucher);
+
         if ($stmt->execute()) {
             $id_peserta = $stmt->insert_id;
 
-            // Insert data kelas ke peserta_kelas
             $stmt_kelas = $db->prepare("INSERT INTO peserta_kelas (peserta_id, kelas, warna_kendaraan, tipe_kendaraan, nomor_polisi) VALUES (?, ?, ?, ?, ?)");
-
             for ($i = 0; $i < count($kelas_arr); $i++) {
                 $kelas = $kelas_arr[$i];
                 $warna_kendaraan = $warna_kendaraan_arr[$i] ?? '';
                 $tipe_kendaraan = $tipe_kendaraan_arr[$i] ?? '';
                 $nomor_polisi = $nomor_polisi_arr[$i] ?? null;
-
                 $stmt_kelas->bind_param("issss", $id_peserta, $kelas, $warna_kendaraan, $tipe_kendaraan, $nomor_polisi);
                 $stmt_kelas->execute();
             }
             $stmt_kelas->close();
 
+            // Alert sukses langsung ke riwayat.php
+            echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>";
             echo "<script>
-                alert('Pendaftaran berhasil!');
-                window.location.href = 'peserta.php';
-                </script>";
-            exit;
+                Swal.fire({
+                    icon: 'success',
+                    title: '🎉 Pendaftaran Berhasil!',
+                    text: 'Data peserta berhasil dikirim.',
+                    confirmButtonColor: '#2563eb',
+                    confirmButtonText: 'Oke, lanjut',
+                }).then(() => {
+                    window.location.href = 'riwayat.php';
+                });
+            </script>";
         } else {
-            echo "<script>alert('Gagal simpan data peserta.');</script>";
+            $error_msg = 'Gagal simpan data peserta.';
         }
         $stmt->close();
     }
-}
 
+    if (!empty($error_msg)) {
+        echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>";
+        echo "<script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: '$error_msg',
+                confirmButtonColor: '#2563eb',
+                confirmButtonText: 'Tutup'
+            });
+        </script>";
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -92,6 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Form Pendaftaran Peserta</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body class="bg-gradient-to-r from-blue-200 via-white to-white min-h-screen">
@@ -108,14 +116,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             class="bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-lg space-y-8 border border-gray-100">
 
             <!-- DATA PESERTA -->
-            <h2
-                class="text-lg font-bold text-blue-800 bg-blue-100 px-5 py-2 rounded-full inline-block shadow-sm">
+            <h2 class="text-lg font-bold text-blue-800 bg-blue-100 px-5 py-2 rounded-full inline-block shadow-sm">
                 DATA PESERTA
             </h2>
             <div class="bg-blue-50 p-6 rounded-xl space-y-4 shadow-inner">
-                <input type="text" name="nama_peserta" placeholder="Nama Peserta"
+                <input type="text" name="nama_peserta" placeholder="Nama Peserta" data-required
                     class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none" required />
-                <input type="text" name="nama_tim" placeholder="Nama Tim"
+                <input type="text" name="nama_tim" placeholder="Nama Tim" data-required
                     class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none" required />
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -123,38 +130,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <label class="block text-sm font-medium mb-1">Foto Peserta
                             <span class="text-xs text-gray-500">(wajib, wajah jelas)</span>
                         </label>
-                        <input type="file" name="foto_peserta"
+                        <input type="file" name="foto_peserta" data-required
                             class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none" required />
                     </div>
-                    <input type="text" name="asal_provinsi" placeholder="Asal Provinsi"
+                    <input type="text" name="asal_provinsi" placeholder="Asal Provinsi" data-required
                         class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none" required />
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input type="email" name="email" placeholder="Email"
+                    <input type="email" name="email" placeholder="Email" data-required
                         class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none" required />
-                    <input type="text" name="whatsapp" placeholder="Nomor WhatsApp"
+                    <input type="text" name="whatsapp" placeholder="Nomor WhatsApp" data-required
                         class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none" required />
                 </div>
             </div>
 
             <!-- DATA KELAS -->
-            <h2
-                class="text-lg font-bold text-blue-800 bg-blue-100 px-5 py-2 rounded-full inline-block shadow-sm">
+            <h2 class="text-lg font-bold text-blue-800 bg-blue-100 px-5 py-2 rounded-full inline-block shadow-sm">
                 DATA KELAS & KENDARAAN
             </h2>
             <div id="kelas-wrapper" class="space-y-4">
-                <div
-                    class="kelas-item bg-blue-50 p-6 rounded-xl space-y-4 relative shadow-inner border border-blue-100">
+                <div class="kelas-item bg-blue-50 p-6 rounded-xl space-y-4 relative shadow-inner border border-blue-100">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input type="text" name="kelas[]" placeholder="Kelas"
+                        <input type="text" name="kelas[]" placeholder="Kelas" data-required
                             class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none" required />
-                        <input type="text" name="warna_kendaraan[]" placeholder="Warna Kendaraan"
+                        <input type="text" name="warna_kendaraan[]" placeholder="Warna Kendaraan" data-required
                             class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none" required />
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <input type="text" name="tipe_kendaraan[]" placeholder="Tipe Kendaraan"
+                            <input type="text" name="tipe_kendaraan[]" placeholder="Tipe Kendaraan" data-required
                                 class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none" required />
                             <p class="text-xs text-gray-500 mt-1">Contoh: Fortuner, Pajero, Mio, Jupiter</p>
                         </div>
@@ -164,8 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <p class="text-xs text-gray-500 mt-1">Opsional, contoh: B 1234 XYZ</p>
                         </div>
                     </div>
-                    <button type="button" onclick="hapusKelas(this)"
-                        class="group absolute top-3 right-3 bg-red-100 text-red-700 px-3 py-1 text-xs font-semibold rounded-full shadow-sm hover:shadow-md hover:bg-red-500 hover:text-white transition-all duration-300 flex items-center gap-1">
+                    <button type="button" class="hapusKelas group absolute top-3 right-3 bg-red-100 text-red-700 px-3 py-1 text-xs font-semibold rounded-full shadow-sm hover:shadow-md hover:bg-red-500 hover:text-white transition-all duration-300 flex items-center gap-1">
                         <span class="transition-transform group-hover:rotate-90 duration-300">✕</span>
                         <span class="hidden sm:inline">Hapus</span>
                     </button>
@@ -176,8 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <button type="button" id="tambahKelas"
                 class="group relative overflow-hidden mt-5 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-400 hover:from-yellow-500 hover:via-yellow-600 hover:to-yellow-500 text-black font-semibold px-6 py-2 rounded-full transition-all duration-300 shadow-md hover:shadow-lg hover:scale-[1.05]">
                 <span class="relative z-10">+ Tambah Kelas</span>
-                <span
-                    class="absolute inset-0 bg-yellow-300 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></span>
+                <span class="absolute inset-0 bg-yellow-300 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></span>
             </button>
 
             <!-- Voucher -->
@@ -194,29 +197,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
     </div>
 
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <!-- Scripts -->
-    <script src="../user/js/form_peserta.js"></script>
-    <script src="../user/js/alert/alert_peserta.js"></script>
-
+    <!-- Script -->
     <script>
-        // Fungsi hapus kelas
-        function hapusKelas(button) {
-            button.closest('.kelas-item').remove();
-        }
-        // Tambah kelas
-        document.getElementById('tambahKelas').addEventListener('click', () => {
-            const wrapper = document.getElementById('kelas-wrapper');
-            const kelasItem = document.querySelector('.kelas-item');
-            const clone = kelasItem.cloneNode(true);
-            clone.querySelectorAll('input').forEach(input => input.value = '');
-            wrapper.appendChild(clone);
+        document.addEventListener("DOMContentLoaded", () => {
+            const form = document.querySelector("form");
+            const wrapper = document.getElementById("kelas-wrapper");
+            const tambahBtn = document.getElementById("tambahKelas");
+
+            // Tambah Kelas
+            tambahBtn.addEventListener("click", () => {
+                const firstItem = wrapper.querySelector(".kelas-item");
+                const clone = firstItem.cloneNode(true);
+                clone.querySelectorAll("input").forEach(input => input.value = "");
+                wrapper.appendChild(clone);
+            });
+
+            // Hapus Kelas dengan minimal 1
+            wrapper.addEventListener("click", (e) => {
+                const btn = e.target.closest(".hapusKelas");
+                if (btn && btn.closest(".kelas-item")) {
+                    const items = wrapper.querySelectorAll(".kelas-item");
+                    if (items.length > 1) {
+                        btn.closest(".kelas-item").remove();
+                    } else {
+                        Swal.fire({
+                            icon: "warning",
+                            title: "Oops...",
+                            text: "Minimal harus ada 1 kelas!",
+                            confirmButtonText: "OK"
+                        });
+                    }
+                }
+            });
+
+            // Validasi Form
+            form.addEventListener("submit", (e) => {
+                e.preventDefault();
+                const requiredFields = form.querySelectorAll("input[data-required]");
+                let emptyFields = [];
+                requiredFields.forEach(field => {
+                    if ((field.type === "file" && field.files.length === 0) ||
+                        (field.type !== "file" && !field.value.trim())) {
+                        emptyFields.push(field.placeholder || field.name);
+                    }
+                });
+
+                if (emptyFields.length > 0) {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Form Belum Lengkap!",
+                        html: `<ul style="text-align:left;">${emptyFields.map(f => `<li>${f}</li>`).join("")}</ul>`,
+                        confirmButtonText: "Oke"
+                    });
+                } else {
+                    form.submit();
+                }
+            });
         });
     </script>
+
+    <?php require 'templates/footer.php'; ?>
 </body>
 
 </html>
-
-<?php require 'templates/footer.php'; ?>
