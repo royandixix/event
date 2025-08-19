@@ -1,101 +1,123 @@
-<?php require 'templates/header.php'; ?>
-<?php require 'templates/sidebar.php'; ?>
+<?php 
+include 'templates/header.php'; 
+include 'templates/sidebar.php'; 
+include '../function/config.php';
 
-<!-- Konten Utama -->
-<main class="p-6 transition-all duration-300 lg:ml-64 mt-16 max-w-7xl mx-auto">
+// Hitung jumlah data
+$total_event   = mysqli_fetch_assoc(mysqli_query($db, "SELECT COUNT(*) as total FROM event"))['total'];
+$total_peserta = mysqli_fetch_assoc(mysqli_query($db, "SELECT COUNT(*) as total FROM peserta"))['total'];
+$total_manajer = mysqli_fetch_assoc(mysqli_query($db, "SELECT COUNT(*) as total FROM manajer"))['total'];
+?>
 
-  <!-- Judul Halaman -->
-  <h1 class="text-3xl font-bold mb-8 text-gray-800">
-    Dashboard Admin
-  </h1>
+<main class="main-content">
+    <section class="py-5 px-4">
+        <h1 class="display-5 fw-bold text-gradient" 
+            style="background: linear-gradient(90deg, #4facfe, #00f2fe); -webkit-background-clip: text; color: transparent;">
+            Selamat Datang di Dashboard 🎉
+        </h1>
+        <p class="mt-3 fs-5 text-muted">Ringkasan statistik pendaftaran event.</p>
+    </section>
 
-  <!-- Statistik Card -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="container mb-5">
+        <div class="row g-4">
+            <?php 
+            $cards = [
+                ['icon'=>'calendar-alt','title'=>'Total Event','color1'=>'#4facfe','color2'=>'#00f2fe','total'=>$total_event,'text'=>'primary','message'=>'Ini total event yang terdaftar!'],
+                ['icon'=>'users','title'=>'Total Peserta','color1'=>'#11998e','color2'=>'#38ef7d','total'=>$total_peserta,'text'=>'success','message'=>'Jumlah peserta hingga saat ini.'],
+                ['icon'=>'user-tie','title'=>'Total Manajer','color1'=>'#f7971e','color2'=>'#ffd200','total'=>$total_manajer,'text'=>'warning','message'=>'Manajer yang terdaftar di sistem.'],
+            ];
 
-    <!-- Card Event -->
-    <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition p-5 border-l-4 border-blue-500">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-gray-500">Total Event</p>
-          <h2 class="text-2xl font-bold text-gray-800">12</h2>
+            foreach($cards as $card): ?>
+            <div class="col-md-4">
+                <div class="card shadow-lg border-0 rounded-4 hover-card" 
+                     data-message="<?= $card['message'] ?>">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3 icon-container">
+                            <i class="fas fa-<?= $card['icon'] ?> fa-3x text-<?= $card['text'] ?>"></i>
+                        </div>
+                        <h5 class="card-title text-muted"><?= $card['title'] ?></h5>
+                        <h2 class="fw-bold text-gradient counter gradient-text" 
+                            data-target="<?= $card['total'] ?>" 
+                            style="background: linear-gradient(90deg, <?= $card['color1'] ?>, <?= $card['color2'] ?>); -webkit-background-clip: text; color: transparent;">
+                            0
+                        </h2>
+                    </div>
+                </div>
+            </div>
+            <?php endforeach; ?>
         </div>
-        <span class="material-icons text-blue-500 text-4xl">event</span>
-      </div>
     </div>
-
-    <!-- Card Peserta -->
-    <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition p-5 border-l-4 border-green-500">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-gray-500">Total Peserta</p>
-          <h2 class="text-2xl font-bold text-gray-800">245</h2>
-        </div>
-        <span class="material-icons text-green-500 text-4xl">people</span>
-      </div>
-    </div>
-
-    <!-- Card Kelas -->
-    <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition p-5 border-l-4 border-yellow-500">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-gray-500">Total Kelas</p>
-          <h2 class="text-2xl font-bold text-gray-800">8</h2>
-        </div>
-        <span class="material-icons text-yellow-500 text-4xl">category</span>
-      </div>
-    </div>
-
-    <!-- Card Manajer -->
-    <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition p-5 border-l-4 border-purple-500">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-gray-500">Total Manajer</p>
-          <h2 class="text-2xl font-bold text-gray-800">15</h2>
-        </div>
-        <span class="material-icons text-purple-500 text-4xl">supervisor_account</span>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Tabel Statistik -->
-  <div class="mt-12 bg-white rounded-xl shadow-md hover:shadow-xl transition p-6">
-    <h2 class="text-xl font-semibold text-gray-700 mb-6">
-      Statistik Peserta per Bulan
-    </h2>
-    
-    <div class="overflow-x-auto">
-      <table class="min-w-full border border-gray-200 rounded-lg overflow-hidden">
-        <thead class="bg-blue-600 text-white">
-          <tr>
-            <th class="px-6 py-3 text-left text-sm font-semibold">No</th>
-            <th class="px-6 py-3 text-left text-sm font-semibold">Nama Depan</th>
-            <th class="px-6 py-3 text-left text-sm font-semibold">Nama Belakang</th>
-            <th class="px-6 py-3 text-left text-sm font-semibold">Media Sosial</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200">
-          <tr class="bg-gray-50 hover:bg-gray-100 transition">
-            <td class="px-6 py-3">1</td>
-            <td class="px-6 py-3">John</td>
-            <td class="px-6 py-3">Doe</td>
-            <td class="px-6 py-3">@twitter</td>
-          </tr>
-          <tr class="hover:bg-gray-100 transition">
-            <td class="px-6 py-3">2</td>
-            <td class="px-6 py-3">Jane</td>
-            <td class="px-6 py-3">Smith</td>
-            <td class="px-6 py-3">@facebook</td>
-          </tr>
-          <tr class="bg-gray-50 hover:bg-gray-100 transition">
-            <td class="px-6 py-3">3</td>
-            <td class="px-6 py-3">Alice</td>
-            <td class="px-6 py-3">Williams</td>
-            <td class="px-6 py-3">@instagram</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
 </main>
+
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+.hover-card {
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.hover-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+}
+
+.icon-container i {
+    transition: transform 0.3s ease;
+}
+.hover-card:hover .icon-container i {
+    transform: rotate(15deg) scale(1.2);
+}
+
+.gradient-text {
+    background-size: 200% 200%;
+    animation: gradientMove 3s ease infinite;
+}
+@keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+</style>
+
+<script>
+// Counter Animation
+const counters = document.querySelectorAll('.counter');
+counters.forEach(counter=>{
+    const target = +counter.getAttribute('data-target');
+    let count=0;
+    const duration=2500;
+    const stepTime=20;
+    const step=()=>{
+        const increment=(target/duration)*stepTime;
+        count+=increment;
+        if(count<target){
+            counter.innerText=Math.ceil(count);
+            requestAnimationFrame(step);
+        } else { counter.innerText=target; }
+    };
+    requestAnimationFrame(step);
+});
+
+// SweetAlert2 Hover
+const hoverCards = document.querySelectorAll('.hover-card');
+hoverCards.forEach(card=>{
+    card.addEventListener('mouseenter', ()=>{
+        const message = card.getAttribute('data-message');
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'info',
+            title: message,
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+            background: '#1f2937',
+            color: '#fff',
+            iconColor: '#4facfe'
+        });
+    });
+});
+</script>
+
+<?php include 'templates/footer.php'; ?>

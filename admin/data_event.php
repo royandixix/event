@@ -1,249 +1,266 @@
 <?php
-require './templates/sidebar.php';
-require '../function/config.php';
+include '../function/config.php';
+include 'templates/header.php';
+include 'templates/sidebar.php';
 
-// Ambil semua event + invoice
-$sql = "
-    SELECT e.*, i.nomor_invoice, i.total_harga, i.kode_unik, i.total_transfer, i.bank_tujuan,
-           i.no_rekening, i.nama_pemilik_rekening, i.gambar_bank, i.status AS invoice_status, i.created_at AS invoice_created
-    FROM event e
-    LEFT JOIN invoice i ON e.id_event = i.id_event
-    ORDER BY e.created_at DESC
-";
-$result = mysqli_query($db, $sql);
+// Ambil semua event
+$events = mysqli_fetch_all(
+    mysqli_query($db, "SELECT * FROM event ORDER BY created_at DESC"),
+    MYSQLI_ASSOC
+);
 
-// Ambil semua slot & booking untuk modal
-$slotSql = "
-    SELECT s.id_slot, s.id_event, s.nomor_slot, s.status, b.nama_pesanan, b.nama_tim
-    FROM paddock_slot s
-    LEFT JOIN paddock_booking b ON s.id_slot = b.slot_id
-    ORDER BY s.id_event, s.nomor_slot ASC
-";
-$slotResult = mysqli_query($db, $slotSql);
-$slotsData = [];
-while ($slotRow = mysqli_fetch_assoc($slotResult)) {
-    $slotsData[$slotRow['id_event']][] = $slotRow;
+// Ambil semua invoice dan kelompokkan per event
+$invoiceResult = mysqli_query($db, "SELECT * FROM invoice ORDER BY created_at DESC");
+$invoicesData = [];
+while ($invRow = mysqli_fetch_assoc($invoiceResult)) {
+    $invoicesData[$invRow['id_event']][] = $invRow;
 }
 ?>
 
-<main class="p-6 transition-all duration-300 lg:ml-64">
-    <div class="w-full max-w-full bg-gray-50 border border-gray-100">
-        <!-- Header -->
-        <div class="px-6 py-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-blue-500 rounded-t-2xl">
-            <div>
-                <h1 class="text-3xl font-bold text-white">Event Management</h1>
-                <p class="text-blue-200 mt-1">Kelola semua event dengan mudah dan cepat.</p>
-            </div>
-            <div class="flex gap-2 items-center">
-                <input type="text" id="searchInput" placeholder="Cari event..." class="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
-                <a href="tambah_event.php" class="flex items-center gap-2 px-4 py-2 bg-green-500 text-white font-semibold rounded-lg shadow hover:bg-green-600 transition">
-                    <i class="fas fa-plus"></i> Tambah Event
-                </a>
-            </div>
+<div class="content">
+    <div class="container">
+
+        <!-- Header Section -->
+        <section class="py-5 px-4" style="max-width: 800px;">
+            <h1 class="display-4 fw-bold text-gradient"
+                style="background: linear-gradient(90deg, #4facfe, #00f2fe); -webkit-background-clip: text; color: transparent;">
+                Halaman Data Event
+            </h1>
+            <p class="mt-3 fs-5 text-muted" style="line-height: 1.8;">
+                Halaman ini menampilkan informasi lengkap mengenai berbagai event yang diselenggarakan
+            </p>
+        </section>
+
+        <!-- Tombol Tambah Event -->
+        <div class="mb-3">
+            <a href="tambah_event.php">
+            <button type="button" class="btn btn-primary shadow-sm">
+                <i class="fas fa-plus-circle me-2"></i> Tambah Data Event
+            </button>
+            </a>
         </div>
 
-        <!-- Table Event -->
-        <div class="p-6 overflow-x-auto">
-            <table id="eventTable" class="min-w-[1200px] table-auto border-collapse w-full text-sm md:text-base">
-                <thead class="bg-gray-50 text-gray-700 uppercase text-xs md:text-sm">
+        <!-- Tabel Event -->
+        <div class="table-responsive">
+            <table class="table custom-table">
+                <thead>
                     <tr>
-                        <th class="border-b border-gray-200 px-4 py-2 text-left">No</th>
-                        <th class="border-b border-gray-200 px-4 py-2 text-left">Judul Event</th>
-                        <th class="border-b border-gray-200 px-4 py-2 text-left">Tanggal</th>
-                        <th class="border-b border-gray-200 px-4 py-2 text-left">Lokasi</th>
-                        <th class="border-b border-gray-200 px-4 py-2 text-left">Harga</th>
-                        <th class="border-b border-gray-200 px-4 py-2">Poster</th>
-                        <th class="border-b border-gray-200 px-4 py-2">Invoice</th>
-                        <th class="border-b border-gray-200 px-4 py-2">Nomor Invoice</th>
-                        <th class="border-b border-gray-200 px-4 py-2">Total Harga</th>
-                        <th class="border-b border-gray-200 px-4 py-2">Kode Unik</th>
-                        <th class="border-b border-gray-200 px-4 py-2">Total Transfer</th>
-                        <th class="border-b border-gray-200 px-4 py-2">Bank Tujuan</th>
-                        <th class="border-b border-gray-200 px-4 py-2">No Rekening</th>
-                        <th class="border-b border-gray-200 px-4 py-2">Nama Pemilik Rekening</th>
-                        <th class="border-b border-gray-200 px-4 py-2">Gambar Bank</th>
-                        <th class="border-b border-gray-200 px-4 py-2">Status</th>
-                        <th class="border-b border-gray-200 px-4 py-2">Created At</th>
-                        <th class="border-b border-gray-200 px-4 py-2">Aksi</th>
+                        <th>No</th>
+                        <th>Judul Event</th>
+                        <th>Deskripsi & Lokasi</th>
+                        <th>Tanggal</th>
+                        <th>Harga</th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
-
-                <tbody class="divide-y divide-gray-100">
-                    <?php if (mysqli_num_rows($result) > 0): ?>
-                        <?php $no = 1; ?>
-                        <?php while ($row = mysqli_fetch_assoc($result)): ?>
-                            <tr class="bg-white hover:bg-gray-50 hover:shadow-md transition-all duration-200 rounded-lg">
-                                <td class="px-4 py-3"><?= $no++ ?></td>
-                                <td class="px-4 py-3 font-semibold"><?= htmlspecialchars($row['judul_event']) ?></td>
-                                <td class="px-4 py-3"><?= $row['tanggal_mulai'] ?> - <?= $row['tanggal_selesai'] ?></td>
-                                <td class="px-4 py-3"><?= htmlspecialchars($row['lokasi_event']) ?></td>
-                                <td class="px-4 py-3">Rp <?= number_format($row['harga_event'], 0, ',', '.') ?></td>
-
-                                <td class="px-4 py-3">
-                                    <?php if ($row['poster_path']): ?>
-                                        <img src="../uploads/poster/<?= $row['poster_path'] ?>"
-                                            class="w-20 h-24 object-cover rounded-lg shadow-sm" alt="Poster">
-                                    <?php else: ?>
-                                        <span class="text-gray-400 italic">Tidak ada</span>
-                                    <?php endif; ?>
-                                </td>
-
-                                <td class="px-4 py-3">
-                                    <?php if ($row['nomor_invoice']): ?>
-                                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">
-                                            <?= htmlspecialchars($row['nomor_invoice']) ?>
-                                            (Rp <?= number_format($row['total_transfer'], 0, ',', '.') ?>)
-                                        </span>
-                                        <span class="text-gray-500 text-sm">(<?= htmlspecialchars($row['invoice_status']) ?>)</span>
-                                    <?php else: ?>
-                                        <span class="text-gray-400 italic">Belum ada invoice</span>
-                                    <?php endif; ?>
-                                </td>
-
-                                <td><?= htmlspecialchars($row['nomor_invoice']) ?></td>
-                                <td>Rp <?= number_format($row['total_harga'], 0, ',', '.') ?></td>
-                                <td><?= $row['kode_unik'] ?></td>
-                                <td>Rp <?= number_format($row['total_transfer'], 0, ',', '.') ?></td>
-                                <td><?= htmlspecialchars($row['bank_tujuan']) ?></td>
-                                <td><?= htmlspecialchars($row['no_rekening']) ?></td>
-                                <td><?= htmlspecialchars($row['nama_pemilik_rekening']) ?></td>
-
+                <tbody>
+                    <?php if (!empty($events)): ?>
+                        <?php $no = 1;
+                        foreach ($events as $event): ?>
+                            <tr>
+                                <td><?= $no++ ?></td>
+                                <td><?= htmlspecialchars($event['judul_event']) ?></td>
                                 <td>
-                                    <?php if ($row['gambar_bank']): ?>
-                                        <img src="../uploads/bank/<?= $row['gambar_bank'] ?>"
-                                            class="w-16 h-16 object-cover rounded-lg shadow-sm" alt="Bukti">
-                                    <?php else: ?>
-                                        <span class="text-gray-400 italic">Tidak ada</span>
-                                    <?php endif; ?>
+                                    <?= htmlspecialchars($event['deskripsi_event']) ?><br>
+                                    <small><?= htmlspecialchars($event['lokasi_event']) ?></small>
                                 </td>
-
+                                <td><?= htmlspecialchars($event['tanggal_mulai']) ?> s/d <?= htmlspecialchars($event['tanggal_selesai']) ?></td>
+                                <td>Rp <?= number_format($event['harga_event'], 0, ',', '.') ?></td>
                                 <td>
-                                    <?php
-                                    $statusColor = $row['invoice_status'] === 'Lunas' ? 'bg-green-100 text-green-800' : ($row['invoice_status'] === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-600');
-                                    ?>
-                                    <span class="px-2 py-1 rounded-full font-medium <?= $statusColor ?>">
-                                        <?= htmlspecialchars($row['invoice_status']) ?>
-                                    </span>
-                                </td>
-
-                                <td><?= $row['invoice_created'] ?></td>
-
-                                <td class="px-4 py-3 flex gap-2">
-                                    <button onclick="openModal('modal-<?= $row['id_event'] ?>')"
-                                        class="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200">
-                                        Lihat Slot
-                                    </button>
-                                    <a href="edit_event.php?id=<?= $row['id_event'] ?>"
-                                        class="px-3 py-1 bg-gray-200 rounded-lg hover:bg-gray-300">Edit</a>
-                                    <button onclick="hapusEvent(<?= $row['id_event'] ?>)"
-                                        class="px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200">
-                                        Hapus
-                                    </button>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <a href="edit_event.php?id=<?= $event['id_event'] ?>" class="btn btn-warning btn-lg" title="Edit Event">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button class="btn btn-danger btn-lg" title="Hapus Event" onclick="confirmDelete(<?= $event['id_event'] ?>)">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                        <button class="btn btn-info btn-lg" title="Lihat Detail Invoice" data-bs-toggle="modal" data-bs-target="#invoiceModal<?= $event['id_event'] ?>">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
-                        <?php endwhile; ?>
+                        <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="18" class="text-center py-6 text-gray-400 italic">
-                                Belum ada data.
-                            </td>
+                            <td colspan="6" class="text-center">Tidak ada data event</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
             </table>
         </div>
 
+        <!-- Modal Invoice -->
+        <?php foreach ($events as $event):
+            $event_id = $event['id_event'];
+            if (!empty($invoicesData[$event_id])): ?>
+                <div class="modal fade" id="invoiceModal<?= $event_id ?>" tabindex="-1" aria-labelledby="invoiceModalLabel<?= $event_id ?>" aria-hidden="true">
+                    <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered">
+                        <div class="modal-content shadow-lg rounded-4 border-0">
+                            <div class="modal-header bg-gradient text-white rounded-top-4">
+                                <h5 class="modal-title" id="invoiceModalLabel<?= $event_id ?>">
+                                    <i class="bi bi-receipt me-2"></i> Invoice Event: <?= htmlspecialchars($event['judul_event']) ?>
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body p-4">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Nomor Invoice</th>
+                                                <th>Total Harga</th>
+                                                <th>Kode Unik</th>
+                                                <th>Total Transfer</th>
+                                                <th>Bank Tujuan</th>
+                                                <th>No Rekening</th>
+                                                <th>Nama Pemilik Rekening</th>
+                                                <th>Gambar Bank</th>
+                                                <th>Status</th>
+                                                <th>Waktu</th>
+
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($invoicesData[$event_id] as $inv): ?>
+                                                <tr class="<?= strtolower($inv['status']) === 'pending' ? 'table-warning' : ($inv['status'] === 'Lunas' ? 'table-success' : '') ?>">
+                                                    <td><?= htmlspecialchars($inv['nomor_invoice']) ?></td>
+                                                    <td>Rp <?= number_format($inv['total_harga'], 0, ',', '.') ?></td>
+                                                    <td><?= htmlspecialchars($inv['kode_unik']) ?></td>
+                                                    <td>Rp <?= number_format($inv['total_transfer'], 0, ',', '.') ?></td>
+                                                    <td><?= htmlspecialchars($inv['bank_tujuan']) ?></td>
+                                                    <td><?= htmlspecialchars($inv['no_rekening']) ?></td>
+                                                    <td><?= htmlspecialchars($inv['nama_pemilik_rekening']) ?></td>
+                                                    <td>
+                                                        <?php if (!empty($inv['gambar_bank'])): ?>
+                                                            <img src="../uploads/bank/<?= htmlspecialchars($inv['gambar_bank']) ?>" alt="Logo Bank" style="max-width:200px; margin-top:10px;">
+                                                        <?php endif; ?>
+
+                                                    </td>
+
+
+                                                    <td><?= ucfirst($inv['status']) ?></td>
+                                                    <td><?= date('d F Y, H:i', strtotime($inv['created_at'])) ?></td>
+
+
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="modal-footer border-0">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        <?php endif;
+        endforeach; ?>
 
     </div>
+</div>
 
-    <!-- Modal Slot -->
-    <?php mysqli_data_seek($result, 0);
-    while ($row = mysqli_fetch_assoc($result)): ?>
-        <div id="modal-<?= $row['id_event'] ?>" class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center z-50">
-            <div class="bg-white w-11/12 md:w-1/2 rounded-xl p-6 relative">
-                <h2 class="text-xl font-bold mb-4">Detail Slot - <?= htmlspecialchars($row['judul_event']) ?></h2>
-                <button onclick="closeModal('modal-<?= $row['id_event'] ?>')" class="absolute top-4 right-4 text-xl">&times;</button>
-                <table class="w-full table-auto border-collapse text-gray-700">
-                    <thead>
-                        <tr class="bg-gray-100">
-                            <th class="border px-4 py-2">No Slot</th>
-                            <th class="border px-4 py-2">Status</th>
-                            <th class="border px-4 py-2">Nama Pesanan</th>
-                            <th class="border px-4 py-2">Nama Tim</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (!empty($slotsData[$row['id_event']])): ?>
-                            <?php foreach ($slotsData[$row['id_event']] as $slot): ?>
-                                <tr>
-                                    <td class="border px-4 py-2"><?= $slot['nomor_slot'] ?></td>
-                                    <td class="border px-4 py-2"><?= $slot['status'] ?></td>
-                                    <td class="border px-4 py-2"><?= htmlspecialchars($slot['nama_pesanan']) ?></td>
-                                    <td class="border px-4 py-2"><?= htmlspecialchars($slot['nama_tim']) ?></td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="4" class="text-center py-2 text-gray-400 italic">Belum ada slot.</td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    <?php endwhile; ?>
-</main>
-
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    // Fungsi buka modal
-    function openModal(id) {
-        const modal = document.getElementById(id);
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
+    function confirmDelete(btn) {
+        Swal.fire({
+            title: 'Hapus Event?',
+            text: "Data event akan dihapus permanen!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, hapus',
+            cancelButtonText: 'Batal',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire('Terhapus!', 'Event berhasil dihapus.', 'success');
+            }
+        });
     }
 
-    // Fungsi tutup modal
-    function closeModal(id) {
-        const modal = document.getElementById(id);
-        modal.classList.remove('flex');
-        modal.classList.add('hidden');
-    }
-
-    // Fungsi hapus event
-    function hapusEvent(id) {
-        if (confirm("Apakah Anda yakin ingin menghapus event ini?")) {
-            fetch('hapus_event.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: 'id_event=' + id
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        alert('Event berhasil dihapus!');
-                        // Hapus row dari tabel tanpa reload
-                        const row = document.querySelector(`button[onclick="hapusEvent(${id})"]`)?.closest('tr');
-                        if (row) row.remove();
-                    } else {
-                        alert('Gagal menghapus: ' + data.message);
-                    }
-                })
-                .catch(err => {
-                    alert('Terjadi kesalahan: ' + err);
-                });
-        }
-    }
-
-    // Pencarian/filter tabel
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            const filter = this.value.toLowerCase();
-            document.querySelectorAll('#eventTable tbody tr').forEach(row => {
-                row.style.display = row.textContent.toLowerCase().includes(filter) ? '' : 'none';
-            });
+    function confirmClose(btn) {
+        Swal.fire({
+            title: 'Tutup Modal?',
+            text: "Apakah Anda yakin ingin menutup modal invoice?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, tutup',
+            cancelButtonText: 'Batal',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                let modal = bootstrap.Modal.getInstance(btn.closest('.modal'));
+                modal.hide();
+            }
         });
     }
 </script>
+
+<!-- CSS Tombol dan Modal -->
+<style>
+    /* Tombol icon-only tetap keren */
+    .btn-warning,
+    .btn-danger,
+    .btn-info {
+        font-weight: 600;
+        border: none;
+        width: 48px;
+        height: 48px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Hover effect */
+    .btn-warning:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(255, 193, 7, 0.6);
+    }
+
+    .btn-danger:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(220, 53, 69, 0.6);
+    }
+
+    .btn-info:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(13, 110, 253, 0.6);
+    }
+
+    /* Icon lebih besar */
+    .btn i {
+        font-size: 1.2rem;
+    }
+
+    /* Modal header gradient */
+    .modal-header.bg-gradient {
+        background: linear-gradient(90deg, #4facfe, #00f2fe);
+    }
+
+    /* Table hover effect */
+    .table-hover tbody tr:hover {
+        background-color: rgba(79, 172, 254, 0.1);
+    }
+
+    /* Table status colors */
+    .table-success td {
+        font-weight: 600;
+        color: #155724;
+    }
+
+    .table-warning td {
+        font-weight: 600;
+        color: #856404;
+    }
+</style>
+</div>
+</div>
+</div>
+
+<?php include 'templates/footer.php'; ?>

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Aug 16, 2025 at 12:54 AM
+-- Generation Time: Aug 19, 2025 at 09:04 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -121,7 +121,24 @@ CREATE TABLE `manajer` (
 
 INSERT INTO `manajer` (`id_manajer`, `nama_manajer`, `nama_tim`, `foto_manajer`, `asal_provinsi`, `email`, `whatsapp`, `voucher`, `created_at`) VALUES
 (1, 'jokowi', 'garuda', 'manajer_1755170892.jpg', 'sulawesi barat', 'barat@gmail.com', '081678990111', '', '2025-08-14 11:28:12'),
-(2, 'prabowo', 'prabowow', 'manajer_1755298374.jpg', 'sulawesi barat', 'barat@gmail.com', '081678990111', '', '2025-08-15 22:52:54');
+(2, 'prabowo', 'prabowow', 'manajer_1755298374.jpg', 'sulawesi barat', 'barat@gmail.com', '081678990111', '', '2025-08-15 22:52:54'),
+(3, 'malingkundang', 'malungkundang', 'manajer_1755425617.jpg', 'maling kundang', 'malingkundang@gmail.com', '081678990111', '', '2025-08-17 10:13:37'),
+(4, 'harga', 'harga', 'manajer_1755428862.jpg', 'sulawesi barat', 'barat@gmail.com', '081678990111', '', '2025-08-17 11:07:42'),
+(5, 'bunga', 'bunga', 'manajer_1755429034.jpg', 'sulawesi tenggah', 'bunga@gmail.com', '081678990111', '', '2025-08-17 11:10:34'),
+(6, 'bunga', 'bunga', 'manajer_1755429336.jpg', 'sulawesi tenggah', 'bunga@gmail.com', '081678990111', '', '2025-08-17 11:15:36'),
+(7, 'bunga', 'bunga', 'manajer_1755429625.jpg', 'sulawesi tenggah', 'bunga@gmail.com', '081678990111', '', '2025-08-17 11:20:25'),
+(8, 'bunga', 'bunga', 'manajer_1755429664.jpg', 'sulawesi tenggah', 'bunga@gmail.com', '081678990111', '', '2025-08-17 11:21:04'),
+(9, 'fatih', 'fatih', 'manajer_1755430197.jpg', 'sulawesi seleatan', 'selatan@gmail.com', '086346776121', '', '2025-08-17 11:29:57'),
+(10, 'fatih', 'fatih', 'manajer_1755430252.jpg', 'sulawesi seleatan', 'selatan@gmail.com', '086346776121', '', '2025-08-17 11:30:52'),
+(11, 'fatih', 'fatih', 'manajer_1755430363.jpg', 'sulawesi seleatan', 'selatan@gmail.com', '086346776121', '', '2025-08-17 11:32:43'),
+(12, 'fatih', 'fatih', 'manajer_1755430485.jpg', 'sulawesi seleatan', 'selatan@gmail.com', '086346776121', '', '2025-08-17 11:34:45'),
+(13, 'risky', 'merah puti', 'manajer_1755431506.jpg', 'sulawesi tenggah', 'merah@gmail.com', 'merah@gmail.com', '', '2025-08-17 11:51:46'),
+(14, 'pemilik', 'pemilik', 'manajer_1755439948.jpg', 'sulawesi seleatan', 'selatan@gmail.com', '081678990111', '', '2025-08-17 14:12:28'),
+(15, 'pemilik', 'pemilik', 'manajer_1755440481.jpg', 'sulawesi seleatan', 'selatan@gmail.com', '081678990111', '', '2025-08-17 14:21:21'),
+(16, 'pemilik', 'pemilik', 'manajer_1755440549.jpg', 'sulawesi seleatan', 'selatan@gmail.com', '081678990111', '', '2025-08-17 14:22:29'),
+(17, 'cewe', 'cewe', 'manajer_1755444346.jpg', 'sulawesi tenggah', 'malingkundang@gmail.com', '086346776121', '', '2025-08-17 15:25:46'),
+(18, 'keren', 'keren', 'manajer_1755452371.jpeg', 'Sulawesi selatan makassar', 'greis@gmail.com', '081347011234', '', '2025-08-17 17:39:31'),
+(19, 'pegawai', 'pegawai', 'manajer_1755466381.jpeg', 'sulawesi barat', 'barat@gmail.com', '081678990111', '', '2025-08-17 21:33:01');
 
 -- --------------------------------------------------------
 
@@ -144,7 +161,24 @@ CREATE TABLE `manajer_kelas` (
 
 INSERT INTO `manajer_kelas` (`id_kelas`, `manajer_id`, `kelas`, `warna_kendaraan`, `tipe_kendaraan`, `nomor_polisi`) VALUES
 (1, 1, 'B', 'Merah', 'Mio', 'C 1234 XYA'),
-(2, 2, 'B', 'Hitam', 'Pajero', 'C 1234 XYA');
+(2, 2, 'B', 'Hitam', 'Pajero', 'C 1234 XYA'),
+(3, 3, 'B', 'Merah', 'Pajero', 'C 1234 XYA'),
+(4, 4, 'B', 'Merah', 'Pajero', 'C 1234 XYA'),
+(5, 5, 'B', 'Merah', 'Pajero', ''),
+(6, 6, 'B', 'Merah', 'Pajero', ''),
+(7, 7, 'B', 'Merah', 'Pajero', ''),
+(8, 8, 'B', 'Merah', 'Pajero', ''),
+(9, 9, 'D', 'hijau', 'PAJERO', 'C 1234 XYA'),
+(10, 10, 'D', 'hijau', 'PAJERO', 'C 1234 XYA'),
+(11, 11, 'D', 'hijau', 'PAJERO', 'C 1234 XYA'),
+(12, 12, 'D', 'hijau', 'PAJERO', 'C 1234 XYA'),
+(13, 13, 'A', 'Hitam', 'Pajero', 'C 1234 XYA'),
+(14, 14, 'A', 'Hitam', 'Pajero', 'C 1234 XYA'),
+(15, 15, 'A', 'Hitam', 'Pajero', 'C 1234 XYA'),
+(16, 16, 'A', 'Hitam', 'Pajero', 'C 1234 XYA'),
+(17, 17, 'B', 'Merah', 'Pajero', 'C 1234 XYA'),
+(18, 18, 'L', 'Biru', 'biss', '081347018612'),
+(19, 19, 'A', 'Merah', 'Pajero', 'C 1234 XYA');
 
 -- --------------------------------------------------------
 
@@ -240,7 +274,13 @@ CREATE TABLE `peserta` (
 
 INSERT INTO `peserta` (`id_peserta`, `nama_peserta`, `nama_tim`, `foto_peserta`, `asal_provinsi`, `email`, `whatsapp`, `voucher`, `created_at`) VALUES
 (1, 'royandi', 'undipa', 'foto_peserta_1755095135.png', 'sulawesi barat', 'randiroyandi@gmail.com', '081347018612', '', '2025-08-13 14:25:35'),
-(2, 'royandi', 'undipa', 'foto_peserta_1755180247.png', 'sulawesi barat', 'admin@gmail.com', '345678908', '', '2025-08-14 14:04:07');
+(2, 'royandi', 'undipa', 'foto_peserta_1755180247.png', 'sulawesi barat', 'admin@gmail.com', '345678908', '', '2025-08-14 14:04:07'),
+(3, 'mahasiswa', 'mahasiswa', 'foto_peserta_1755337779.jpeg', 'sulawesi selatan', 'selatan@gmail.com', '081347011234', '', '2025-08-16 09:49:39'),
+(4, 'mahasiswa', 'mahasiswa', 'foto_peserta_1755337920.jpeg', 'sulawesi selatan', 'selatan@gmail.com', '081347011234', '', '2025-08-16 09:52:00'),
+(5, 'Kedai', 'kedai', 'foto_peserta_1755343638.jpeg', 'Sulawesi selatan makassar', 'kedai@gmail.com', '082345678990', '', '2025-08-16 11:27:18'),
+(6, 'dimensi', 'dimensi', 'foto_peserta_1755344795.jpeg', 'sulawesi selatan makassar', 'dimensi@gmail.com', '081347011234', '', '2025-08-16 11:46:35'),
+(7, 'code', 'code', 'foto_peserta_1755417839.jpg', 'sulawesi selatan', 'code@gmail.com', '081223323411', '', '2025-08-17 08:03:59'),
+(8, 'onepice', 'onepice', 'foto_peserta_1755472393.jpg', 'Sulawesi selatan makassar', 'user@gmail.com', '081347018612', '', '2025-08-17 23:13:13');
 
 -- --------------------------------------------------------
 
@@ -264,7 +304,13 @@ CREATE TABLE `peserta_kelas` (
 INSERT INTO `peserta_kelas` (`id_kelas`, `peserta_id`, `kelas`, `warna_kendaraan`, `tipe_kendaraan`, `nomor_polisi`) VALUES
 (1, 1, '2', 'biru', 'pajero', 'B 1234 XYZ (Jakarta)'),
 (2, 2, '2', 'biru', 'mio', 'mera'),
-(3, 2, '3', 'mera', 'pajero', '');
+(3, 2, '3', 'mera', 'pajero', ''),
+(4, 3, '5', 'Hijau', 'Avanza', 'DP 1234 XYZ (Makassar)'),
+(5, 4, '5', 'Hijau', 'Avanza', 'DP 1234 XYZ (Makassar)'),
+(6, 5, 'H', 'orange', 'pajero', 'B 1234 XYZ (makassar )'),
+(7, 6, 'H', 'biru', 'pajero', 'DP 1234 XYZ (Makassar)'),
+(8, 7, 'J', 'Hitam', 'pajero', 'B 1234 XYZ (makassar )'),
+(9, 8, '5', 'Hijau', 'Avanza', 'B 1234 XYZ (Jakarta)');
 
 --
 -- Indexes for dumped tables
@@ -361,13 +407,13 @@ ALTER TABLE `invoice`
 -- AUTO_INCREMENT for table `manajer`
 --
 ALTER TABLE `manajer`
-  MODIFY `id_manajer` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_manajer` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `manajer_kelas`
 --
 ALTER TABLE `manajer_kelas`
-  MODIFY `id_kelas` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_kelas` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `paddock_booking`
@@ -385,13 +431,13 @@ ALTER TABLE `paddock_slot`
 -- AUTO_INCREMENT for table `peserta`
 --
 ALTER TABLE `peserta`
-  MODIFY `id_peserta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_peserta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `peserta_kelas`
 --
 ALTER TABLE `peserta_kelas`
-  MODIFY `id_kelas` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_kelas` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- Constraints for dumped tables
