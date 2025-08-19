@@ -184,7 +184,7 @@
         <a href="index.php" class="nav-link"><i data-lucide="home" class="me-2"></i> Dashboard</a>
         <a href="data_event.php" class="nav-link"><i data-lucide="calendar" class="me-2"></i> Data Event</a>
         <a href="data_peserta.php" class="nav-link"><i data-lucide="users" class="me-2"></i> Data Peserta</a>
-        <a href="data_kelas.php" class="nav-link"><i data-lucide="layers" class="me-2"></i> Data Kelas</a>
+        
         <a href="data_manajer.php" class="nav-link"><i data-lucide="user-check" class="me-2"></i> Data Manajer</a>
     </aside>
 
