@@ -102,11 +102,16 @@ try {
                     </div>
                 <?php endforeach; ?>
             <?php endif; ?>
+
+            <!-- Tombol Kembali -->
+            <div class="text-center mt-6">
+                <a href="index.php"
+                   class="inline-block bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800
+                          text-white font-medium px-5 py-2 rounded-lg transition duration-200 shadow-md hover:shadow-lg">
+                    ⬅ Kembali
+                </a>
+            </div>
         </div>
     </div>
 </body>
-<script>
-    window.location.replace('index.php');
-</script>
-
 </html>
