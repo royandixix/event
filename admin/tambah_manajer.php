@@ -17,7 +17,6 @@ if (isset($_POST['simpan'])) {
     $kelas           = trim($_POST['kelas']);
     $warna_kendaraan = trim($_POST['warna_kendaraan']);
     $tipe_kendaraan  = trim($_POST['tipe_kendaraan']);
-    $nomor_polisi    = trim($_POST['nomor_polisi']);
 
     // Upload foto (opsional)
     $foto_manajer = '';
@@ -29,7 +28,7 @@ if (isset($_POST['simpan'])) {
 
     // Validasi
     if (empty($nama_manajer) || empty($nama_tim) || empty($email) || empty($whatsapp) || empty($asal_provinsi) || empty($kelas) || empty($warna_kendaraan) || empty($tipe_kendaraan)) {
-        $error = "Semua field wajib diisi (nomor polisi dan foto opsional).";
+        $error = "Semua field wajib diisi (foto opsional).";
     }
 
     if (!$error) {
@@ -40,11 +39,13 @@ if (isset($_POST['simpan'])) {
         if ($stmt->execute()) {
             $id_manajer_baru = $db->insert_id;
 
-            // Insert ke tabel manajer_kelas
-            $stmt2 = $db->prepare("INSERT INTO manajer_kelas (manajer_id, kelas, warna_kendaraan, tipe_kendaraan, nomor_polisi) VALUES (?, ?, ?, ?, ?)");
-            $stmt2->bind_param("issss", $id_manajer_baru, $kelas, $warna_kendaraan, $tipe_kendaraan, $nomor_polisi);
+            // Insert ke tabel manajer_kelas (tanpa nomor polisi)
+            $stmt2 = $db->prepare("INSERT INTO manajer_kelas (manajer_id, kelas, warna_kendaraan, tipe_kendaraan) VALUES (?, ?, ?, ?)");
+            $stmt2->bind_param("isss", $id_manajer_baru, $kelas, $warna_kendaraan, $tipe_kendaraan);
             $stmt2->execute();
+            $stmt2->close();
 
+            echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>";
             echo "<script>
                 Swal.fire({
                     icon: 'success',
@@ -56,9 +57,11 @@ if (isset($_POST['simpan'])) {
         } else {
             $error = "Gagal menambahkan manajer.";
         }
+        $stmt->close();
     }
 
     if ($error) {
+        echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>";
         echo "<script>
             Swal.fire({
                 icon: 'error',
@@ -132,12 +135,6 @@ if (isset($_POST['simpan'])) {
             <div class="mb-3">
                 <label class="form-label">Tipe Kendaraan</label>
                 <input type="text" class="form-control" name="tipe_kendaraan" required>
-            </div>
-
-            <!-- Nomor Polisi -->
-            <div class="mb-3">
-                <label class="form-label">Nomor Polisi (opsional)</label>
-                <input type="text" class="form-control" name="nomor_polisi">
             </div>
 
             <button type="submit" name="simpan" class="btn btn-primary">Simpan Manajer</button>

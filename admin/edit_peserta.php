@@ -16,9 +16,9 @@ if (!isset($_GET['id'])) {
 
 $id_peserta = (int)$_GET['id'];
 
-// Ambil data peserta dan kelas
+// Ambil data peserta dan kelas (tanpa nomor polisi)
 $query = $db->prepare("
-    SELECT p.*, pk.kelas, pk.warna_kendaraan, pk.tipe_kendaraan, pk.nomor_polisi
+    SELECT p.*, pk.kelas, pk.warna_kendaraan, pk.tipe_kendaraan
     FROM peserta p
     LEFT JOIN peserta_kelas pk ON p.id_peserta = pk.peserta_id
     WHERE p.id_peserta = ?
@@ -36,37 +36,62 @@ if (!$peserta) {
     exit;
 }
 
+// Ambil nama provinsi berdasarkan id_provinsi
+$asal_provinsi = '';
+if (!empty($peserta['id_provinsi'])) {
+    $prov_query = $db->prepare("SELECT nama_provinsi FROM provinsi WHERE id_provinsi = ?");
+    $prov_query->bind_param("i", $peserta['id_provinsi']);
+    $prov_query->execute();
+    $prov_query->bind_result($asal_provinsi);
+    $prov_query->fetch();
+    $prov_query->close();
+}
+
 // Proses update
 if (isset($_POST['update'])) {
     $nama_peserta    = trim($_POST['nama_peserta']);
     $email           = trim($_POST['email']);
     $no_hp           = trim($_POST['no_hp']);
     $id_event        = $_POST['id_event'];
+    $id_provinsi     = $_POST['id_provinsi'];
 
     $kelas           = trim($_POST['kelas']);
     $warna_kendaraan = trim($_POST['warna_kendaraan']);
     $tipe_kendaraan  = trim($_POST['tipe_kendaraan']);
-    $nomor_polisi    = trim($_POST['nomor_polisi']);
 
-    if (empty($nama_peserta) || empty($email) || empty($no_hp) || empty($id_event) || empty($kelas) || empty($warna_kendaraan) || empty($tipe_kendaraan)) {
-        $error = "Semua field wajib diisi (nomor polisi opsional).";
+    if (empty($nama_peserta) || empty($email) || empty($no_hp) || empty($id_event) || empty($kelas) || empty($warna_kendaraan) || empty($tipe_kendaraan) || empty($id_provinsi)) {
+        $error = "Semua field wajib diisi.";
+    }
+
+    // Ambil nama provinsi baru
+    $asal_provinsi = '';
+    if (!empty($id_provinsi)) {
+        $prov_query = $db->prepare("SELECT nama_provinsi FROM provinsi WHERE id_provinsi = ?");
+        $prov_query->bind_param("i", $id_provinsi);
+        $prov_query->execute();
+        $prov_query->bind_result($asal_provinsi);
+        $prov_query->fetch();
+        $prov_query->close();
     }
 
     if (!$error) {
         // Update peserta
-        $stmt = $db->prepare("UPDATE peserta SET nama_peserta = ?, email = ?, whatsapp = ?, id_event = ? WHERE id_peserta = ?");
-        $stmt->bind_param("sssii", $nama_peserta, $email, $no_hp, $id_event, $id_peserta);
+        $stmt = $db->prepare("UPDATE peserta SET nama_peserta = ?, email = ?, whatsapp = ?, id_event = ?, id_provinsi = ?, asal_provinsi = ? WHERE id_peserta = ?");
+        $stmt->bind_param("sssiisi", $nama_peserta, $email, $no_hp, $id_event, $id_provinsi, $asal_provinsi, $id_peserta);
         $stmt->execute();
+        $stmt->close();
 
-        // Update peserta_kelas (jika ada)
+        // Update peserta_kelas (tanpa nomor polisi)
         $stmt2 = $db->prepare("
-            INSERT INTO peserta_kelas (peserta_id, kelas, warna_kendaraan, tipe_kendaraan, nomor_polisi)
-            VALUES (?, ?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE kelas=VALUES(kelas), warna_kendaraan=VALUES(warna_kendaraan), tipe_kendaraan=VALUES(tipe_kendaraan), nomor_polisi=VALUES(nomor_polisi)
+            INSERT INTO peserta_kelas (peserta_id, kelas, warna_kendaraan, tipe_kendaraan)
+            VALUES (?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE kelas=VALUES(kelas), warna_kendaraan=VALUES(warna_kendaraan), tipe_kendaraan=VALUES(tipe_kendaraan)
         ");
-        $stmt2->bind_param("issss", $id_peserta, $kelas, $warna_kendaraan, $tipe_kendaraan, $nomor_polisi);
+        $stmt2->bind_param("isss", $id_peserta, $kelas, $warna_kendaraan, $tipe_kendaraan);
         $stmt2->execute();
+        $stmt2->close();
 
+        echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>";
         echo "<script>
             Swal.fire({
                 icon: 'success',
@@ -78,6 +103,7 @@ if (isset($_POST['update'])) {
     }
 
     if ($error) {
+        echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>";
         echo "<script>
             Swal.fire({ icon: 'error', title: 'Gagal', text: '".htmlspecialchars($error)."' });
         </script>";
@@ -85,6 +111,7 @@ if (isset($_POST['update'])) {
 }
 ?>
 
+<!-- Form HTML -->
 <div class="content">
     <div class="container" style="max-width: 800px;">
         <section class="py-5 px-4">
@@ -128,6 +155,21 @@ if (isset($_POST['update'])) {
                 </select>
             </div>
 
+            <!-- Pilih Provinsi -->
+            <div class="mb-3">
+                <label class="form-label">Asal Provinsi</label>
+                <select class="form-select" name="id_provinsi" required>
+                    <option value="">-- Pilih Provinsi --</option>
+                    <?php
+                    $provinsi = $db->query("SELECT id_provinsi, nama_provinsi FROM provinsi ORDER BY nama_provinsi ASC");
+                    while ($row = $provinsi->fetch_assoc()) {
+                        $selected = ($row['id_provinsi'] == $peserta['id_provinsi']) ? 'selected' : '';
+                        echo "<option value='{$row['id_provinsi']}' $selected>{$row['nama_provinsi']}</option>";
+                    }
+                    ?>
+                </select>
+            </div>
+
             <!-- Nama Kelas -->
             <div class="mb-3">
                 <label class="form-label">Kelas</label>
@@ -144,12 +186,6 @@ if (isset($_POST['update'])) {
             <div class="mb-3">
                 <label class="form-label">Tipe Kendaraan</label>
                 <input type="text" class="form-control" name="tipe_kendaraan" value="<?= htmlspecialchars($peserta['tipe_kendaraan']); ?>" required>
-            </div>
-
-            <!-- Nomor Polisi -->
-            <div class="mb-3">
-                <label class="form-label">Nomor Polisi (opsional)</label>
-                <input type="text" class="form-control" name="nomor_polisi" value="<?= htmlspecialchars($peserta['nomor_polisi']); ?>">
             </div>
 
             <button type="submit" name="update" class="btn btn-primary">Update Peserta</button>

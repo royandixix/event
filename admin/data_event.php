@@ -31,18 +31,29 @@ while ($invRow = mysqli_fetch_assoc($invoiceResult)) {
             </p>
         </section>
 
-        <!-- Tombol Tambah Event -->
-        <div class="mb-3">
-            <a href="tambah_event.php">
-            <button type="button" class="btn btn-primary shadow-sm">
-                <i class="fas fa-plus-circle me-2"></i> Tambah Data Event
-            </button>
+        <!-- Tombol Tambah & Cetak -->
+        <div class="mb-3 d-flex gap-2 flex-wrap tombol-group">
+            <a href="tambah_event.php" class="btn btn-primary btn-custom d-flex align-items-center justify-content-center gap-2">
+                <i class="fas fa-plus-circle"></i> Tambah Data Event
             </a>
+
+            <a href="cetak_event_pdf.php" target="_blank" class="btn btn-danger btn-custom d-flex align-items-center gap-2">
+                <i class="fas fa-file-pdf"></i> Cetak PDF
+            </a>
+
+            <a href="cetak_event_excel_.php" target="_blank" class="btn btn-success btn-custom d-flex align-items-center gap-2">
+                <i class="fas fa-file-excel"></i> Cetak Excel
+            </a>
+        </div>
+
+        <!-- Input Search -->
+        <div class="mb-3">
+            <input type="text" id="searchInput" class="form-control" placeholder="Cari judul, deskripsi, atau lokasi...">
         </div>
 
         <!-- Tabel Event -->
         <div class="table-responsive">
-            <table class="table custom-table">
+            <table class="table custom-table" id="eventTable">
                 <thead>
                     <tr>
                         <th>No</th>
@@ -59,8 +70,8 @@ while ($invRow = mysqli_fetch_assoc($invoiceResult)) {
                         foreach ($events as $event): ?>
                             <tr>
                                 <td><?= $no++ ?></td>
-                                <td><?= htmlspecialchars($event['judul_event']) ?></td>
-                                <td>
+                                <td class="searchable"><?= htmlspecialchars($event['judul_event']) ?></td>
+                                <td class="searchable">
                                     <?= htmlspecialchars($event['deskripsi_event']) ?><br>
                                     <small><?= htmlspecialchars($event['lokasi_event']) ?></small>
                                 </td>
@@ -90,6 +101,8 @@ while ($invRow = mysqli_fetch_assoc($invoiceResult)) {
             </table>
         </div>
 
+        <div class=" btn btn"></div>
+
         <!-- Modal Invoice -->
         <?php foreach ($events as $event):
             $event_id = $event['id_event'];
@@ -118,7 +131,6 @@ while ($invRow = mysqli_fetch_assoc($invoiceResult)) {
                                                 <th>Gambar Bank</th>
                                                 <th>Status</th>
                                                 <th>Waktu</th>
-
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -135,14 +147,9 @@ while ($invRow = mysqli_fetch_assoc($invoiceResult)) {
                                                         <?php if (!empty($inv['gambar_bank'])): ?>
                                                             <img src="../uploads/bank/<?= htmlspecialchars($inv['gambar_bank']) ?>" alt="Logo Bank" style="max-width:200px; margin-top:10px;">
                                                         <?php endif; ?>
-
                                                     </td>
-
-
                                                     <td><?= ucfirst($inv['status']) ?></td>
                                                     <td><?= date('d F Y, H:i', strtotime($inv['created_at'])) ?></td>
-
-
                                                 </tr>
                                             <?php endforeach; ?>
                                         </tbody>
@@ -164,7 +171,7 @@ while ($invRow = mysqli_fetch_assoc($invoiceResult)) {
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    function confirmDelete(btn) {
+    function confirmDelete(id) {
         Swal.fire({
             title: 'Hapus Event?',
             text: "Data event akan dihapus permanen!",
@@ -175,28 +182,33 @@ while ($invRow = mysqli_fetch_assoc($invoiceResult)) {
             reverseButtons: true
         }).then((result) => {
             if (result.isConfirmed) {
-                Swal.fire('Terhapus!', 'Event berhasil dihapus.', 'success');
+                window.location.href = 'hapus_event.php?id=' + id;
             }
         });
     }
 
-    function confirmClose(btn) {
-        Swal.fire({
-            title: 'Tutup Modal?',
-            text: "Apakah Anda yakin ingin menutup modal invoice?",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Ya, tutup',
-            cancelButtonText: 'Batal',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                let modal = bootstrap.Modal.getInstance(btn.closest('.modal'));
-                modal.hide();
-            }
+    // Live Search
+    document.addEventListener("DOMContentLoaded", function() {
+        const searchInput = document.getElementById('searchInput');
+        const table = document.getElementById('eventTable');
+        const rows = table.querySelectorAll('tbody tr');
+
+        searchInput.addEventListener('keyup', function() {
+            const filter = searchInput.value.toLowerCase();
+            rows.forEach(row => {
+                const searchableCells = row.querySelectorAll('.searchable');
+                let match = false;
+                searchableCells.forEach(cell => {
+                    if (cell.textContent.toLowerCase().includes(filter)) match = true;
+                });
+                row.style.display = match ? '' : 'none';
+            });
         });
-    }
+    });
 </script>
+
+<?php include 'templates/footer.php'; ?>
+
 
 <!-- CSS Tombol dan Modal -->
 <style>
@@ -257,6 +269,32 @@ while ($invRow = mysqli_fetch_assoc($invoiceResult)) {
     .table-warning td {
         font-weight: 600;
         color: #856404;
+    }
+
+
+
+    /* Semua tombol dalam grup ini akan memiliki lebar dan tinggi sama */
+    .tombol-group .btn-custom {
+        min-width: 180px;
+        /* lebar minimum semua tombol */
+        height: 50px;
+        /* tinggi tombol seragam */
+        font-size: 16px;
+        /* ukuran teks seragam */
+        font-weight: 600;
+        /* teks lebih tebal */
+    }
+
+    /* Jika ingin ikon dan teks tetap rapi */
+    .tombol-group .btn-custom i {
+        font-size: 1.2rem;
+    }
+
+    /* Hover efek ringan */
+    .tombol-group .btn-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        transition: all 0.2s;
     }
 </style>
 </div>

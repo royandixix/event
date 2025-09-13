@@ -1,4 +1,3 @@
-
 <?php 
   error_reporting(E_ALL);
   ini_set('display_errors', 1);
@@ -12,12 +11,12 @@
 <!-- Lucide Icons -->
 <script src="https://unpkg.com/lucide@latest"></script>
 
-<div class="bg-gradient-to-r from-blue-200 via-white to-white">
+<div class="bg-gradient-to-r from-pink-200 via-white to-white">
   <!-- Search Section -->
   <section class="max-w-5xl px-6 py-24 mx-auto text-left" data-aos="fade-up">
-    <h1 class="text-2xl sm:text-3xl md:text-4xl font-semibold text-gray-900 leading-snug">
-      Informasi & <span class="font-bold text-blue-700">Pendaftaran Event</span><br />
-      <span class="underline decoration-blue-500 font-bold">Drag Bike</span> Nasional & Regional
+    <h1 class="text-2xl sm:text-3xl md:text-4xl text-gray-900 leading-snug">
+      Informasi & <span class="text-pink-700">Pendaftaran Event</span><br />
+      <span class="underline decoration-pink-500">Drag Bike</span> Nasional & Regional
     </h1>
 
     <p class="mt-6 text-gray-600 max-w-2xl text-sm sm:text-base text-justify leading-relaxed">
@@ -27,13 +26,14 @@
     </p>
 
     <!-- Search Box -->
-    <!-- <div class="mt-8 flex items-center gap-3">
+    <!-- 
+    <div class="mt-8 flex items-center gap-3">
       <div class="relative w-full max-w-md">
         <input 
           type="text" 
           id="searchInput"
           placeholder="Cari event, lokasi, atau bulan..."
-          class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-pink-500 focus:outline-none"
         />
         <button 
           id="clearBtn"
@@ -49,14 +49,13 @@
       </div>
       <button 
         id="searchButton"
-        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg"
+        class="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white font-medium rounded-lg"
       >
         Cari
       </button>
-    </div> -->
+    </div> 
+    -->
   </section>
-
- 
 </div>
 
 <!-- Script untuk AOS, Lucide, Search -->
@@ -72,7 +71,7 @@
 
     const dummySuggestions = ["Sentul", "DB21", "Agustus", "Jakarta", "DB Drag Series", "Sumatera"];
 
-    input.addEventListener("input", () => {
+    input?.addEventListener("input", () => {
       const val = input.value.trim();
       clearBtn.style.display = val.length > 0 ? "block" : "none";
 
@@ -86,7 +85,7 @@
           filtered.forEach(s => {
             const li = document.createElement("li");
             li.textContent = s;
-            li.className = "px-4 py-2 hover:bg-blue-50 cursor-pointer";
+            li.className = "px-4 py-2 hover:bg-pink-50 cursor-pointer";
             li.addEventListener("click", () => {
               input.value = s;
               suggestions.classList.add("hidden");
@@ -102,20 +101,20 @@
       }
     });
 
-    input.addEventListener("keydown", e => {
+    input?.addEventListener("keydown", e => {
       if (e.key === "Enter") {
         button.click();
       }
     });
 
-    clearBtn.addEventListener("click", () => {
+    clearBtn?.addEventListener("click", () => {
       input.value = "";
       suggestions.classList.add("hidden");
       clearBtn.style.display = "none";
       input.focus();
     });
 
-    button.addEventListener("click", () => {
+    button?.addEventListener("click", () => {
       const keyword = input.value.trim();
       if (keyword) {
         window.location.href = `/event?search=${encodeURIComponent(keyword)}`;

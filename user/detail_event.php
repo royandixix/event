@@ -21,11 +21,9 @@ if (!$event) {
     exit;
 }
 
-// Sanitasi & fallback
+// Data event
 $judul_event     = htmlspecialchars($event['judul_event'] ?? 'Judul tidak tersedia');
-
-// Gunakan poster_path dari database
-$poster_file = $event['poster_path'] ?? '';
+$poster_file     = $event['poster_path'] ?? '';
 $poster = (!empty($poster_file) && file_exists("../uploads/poster/" . $poster_file))
     ? "../uploads/poster/" . htmlspecialchars(basename($poster_file))
     : "https://via.placeholder.com/600x800?text=No+Image";
@@ -61,120 +59,131 @@ $hargaPendaftaran = [
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
     </style>
 </head>
 
-<body class="bg-blue-100">
-<div class="bg-gradient-to-r from-blue-200 via-white to-white">
-    <div class="pt-24 pb-16 px-4 lg:px-16 max-w-6xl mx-auto grid sm:grid-cols-1 md:grid-cols-2 gap-6">
+<!-- HANYA background utama yang pink -->
 
-        <!-- Kartu Event -->
-        <div class="bg-blue-50 rounded-xl shadow-lg border overflow-hidden hover:shadow-xl transition">
-            <img src="<?= $poster ?>" alt="Poster Event" class="w-full h-[32rem] object-cover">
-            <div class="p-4 space-y-3">
-                <div class="flex items-center gap-2 text-sm text-blue-700">
-                    <i data-lucide="calendar" class="w-4 h-4"></i>
-                    <span><?= $tanggal_mulai ?> - <?= $tanggal_selesai ?></span>
-                </div>
-                <h2 class="text-lg font-bold text-blue-800"><?= $judul_event ?></h2>
-                <div class="flex items-center gap-2 text-sm text-blue-700">
-                    <i data-lucide="map-pin" class="w-4 h-4"></i>
-                    <span><?= $lokasi_event ?></span>
-                </div>
-                <div class="pt-3 space-y-2">
-                    <!-- Tombol Registrasi Umum -->
-                    <button onclick="openModal('general')" class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded-lg transition">Registrasi</button>
-                    <!-- Tombol Registrasi Paddock -->
-                    <button onclick="openModal('paddock')" class="bg-blue-500 hover:bg-blue-600 text-white w-full py-2 rounded-lg transition">Registrasi Paddock</button>
-                </div>
-            </div>
-        </div>
+<body class="bg-gradient-to-r from-pink-200 via-white to-white">
+    <div class="bg-gradient-to-r from-pink-200 via-white to-white">
+        <div class="py-16 px-4 lg:px-16 max-w-6xl mx-auto grid sm:grid-cols-1 md:grid-cols-2 gap-6">
 
-        <!-- Info Event -->
-        <div class="space-y-6">
-            <!-- Deskripsi -->
-            <div class="bg-blue-50 p-5 rounded-xl shadow border">
-                <h3 class="text-xl font-semibold text-blue-800 mb-2">Deskripsi Event</h3>
-                <p class="text-blue-700 text-sm leading-relaxed"><?= nl2br($deskripsi_event) ?></p>
-            </div>
-
-            <!-- Harga Tiket -->
-            <div class="bg-blue-50 p-5 rounded-xl shadow border">
-                <h3 class="font-bold text-blue-800 mb-3">Harga Tiket / Pendaftaran</h3>
-                <div class="space-y-3">
-                    <?php foreach ($hargaPendaftaran as $harga) : ?>
-                        <div class="flex items-center justify-between border rounded-lg p-3 bg-blue-100">
-                            <span class="text-sm text-blue-700"><?= $harga['periode'] ?> - Rp<?= number_format($harga['harga'],0,',','.') ?></span>
-                            <button onclick="openModal('general')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded-lg text-sm">Pilih</button>
-                        </div>
-                    <?php endforeach; ?>
+            <!-- Kartu Event -->
+            <div class="bg-white rounded-xl shadow-lg border overflow-hidden hover:shadow-xl transition">
+                <img src="<?= $poster ?>" alt="Poster Event" class="w-full h-[32rem] object-cover">
+                <div class="p-4 space-y-3">
+                    <div class="flex items-center gap-2 text-sm text-gray-600">
+                        <i data-lucide="calendar" class="w-4 h-4 text-pink-500"></i>
+                        <span><?= $tanggal_mulai ?> - <?= $tanggal_selesai ?></span>
+                    </div>
+                    <h2 class="text-lg font-bold text-gray-800"><?= $judul_event ?></h2>
+                    <div class="flex items-center gap-2 text-sm text-gray-600">
+                        <i data-lucide="map-pin" class="w-4 h-4 text-pink-500"></i>
+                        <span><?= $lokasi_event ?></span>
+                    </div>
+                    <div class="pt-3 space-y-2">
+                        <button onclick="openModal('general')" class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded-lg transition">Registrasi</button>
+                        <button onclick="openModal('paddock')" class="bg-gray-700 hover:bg-gray-800 text-white w-full py-2 rounded-lg transition">Registrasi Paddock</button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Kategori Lomba -->
-            <div class="bg-blue-50 p-5 rounded-xl shadow border">
-                <h3 class="font-bold text-blue-800 mb-3">Kategori Lomba</h3>
-                <div class="max-h-48 overflow-y-auto border rounded-lg divide-y bg-blue-100">
-                    <?php if (!empty($kategoriLomba)) : ?>
-                        <?php foreach ($kategoriLomba as $k) : ?>
-                            <div class="p-3 text-sm text-blue-700"><?= htmlspecialchars($k['kelas'] ?? '-') ?></div>
+            <!-- Info Event -->
+            <div class="space-y-6">
+                <!-- Deskripsi -->
+                <div class="bg-white p-5 rounded-xl shadow border">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Deskripsi Event</h3>
+                    <p class="text-gray-700 text-sm leading-relaxed"><?= nl2br($deskripsi_event) ?></p>
+                </div>
+
+                <!-- Harga Tiket -->
+                <div class="bg-white p-5 rounded-xl shadow border">
+                    <h3 class="font-bold text-gray-800 mb-3">Harga Tiket / Pendaftaran</h3>
+                    <div class="space-y-3">
+                        <?php foreach ($hargaPendaftaran as $harga) : ?>
+                            <div class="flex items-center justify-between border rounded-lg p-3 bg-gray-50">
+                                <span class="text-sm text-gray-700"><?= $harga['periode'] ?> - Rp<?= number_format($harga['harga'], 0, ',', '.') ?></span>
+                                <button onclick="openModal('general')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded-lg text-sm">Pilih</button>
+                            </div>
                         <?php endforeach; ?>
-                    <?php else: ?>
-                        <div class="p-3 text-sm text-blue-500">Belum ada kategori.</div>
-                    <?php endif; ?>
+                    </div>
+                </div>
+
+                <!-- Kategori Lomba -->
+                <div class="bg-white p-5 rounded-xl shadow border">
+                    <h3 class="font-bold text-gray-800 mb-3">Kategori Lomba</h3>
+                    <div class="max-h-48 overflow-y-auto border rounded-lg divide-y bg-gray-50">
+                        <?php if (!empty($kategoriLomba)) : ?>
+                            <?php foreach ($kategoriLomba as $k) : ?>
+                                <div class="p-3 text-sm text-gray-700"><?= htmlspecialchars($k['kelas'] ?? '-') ?></div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="p-3 text-sm text-gray-500">Belum ada kategori.</div>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
-<!-- Modal Registrasi Umum -->
-<div id="modalGeneral" class="hidden fixed inset-0 bg-black/60 flex items-start justify-center z-50">
-    <div class="bg-blue-50 rounded-xl shadow-lg p-6 w-80 text-center space-y-5 animate-fade-in mt-20">
-        <h3 class="text-lg font-bold text-blue-800">Pilih Jenis Registrasi</h3>
-        <p class="text-sm text-blue-700">Silakan pilih apakah Anda mendaftar sebagai peserta atau manajer.</p>
-        <div class="flex flex-col gap-3">
-            <a href="peserta.php" class="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition">Peserta</a>
-            <a href="manejer.php" class="bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg transition">Manajer</a>
+        <!-- Modal Registrasi Umum -->
+        <div id="modalGeneral" class="hidden fixed inset-0 bg-black/60 flex items-start justify-center z-50">
+            <div class="bg-white rounded-xl shadow-lg p-6 w-80 text-center space-y-5 animate-fade-in mt-20">
+                <h3 class="text-lg font-bold text-gray-800">Pilih Jenis Registrasi</h3>
+                <p class="text-sm text-gray-600">Silakan pilih apakah Anda mendaftar sebagai peserta atau manajer.</p>
+                <div class="flex flex-col gap-3">
+                    <a href="peserta.php" class="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition">Peserta</a>
+                    <a href="manejer.php" class="bg-gray-700 hover:bg-gray-800 text-white py-2 rounded-lg transition">Manajer</a>
+                </div>
+                <button onclick="closeModal('general')" class="mt-4 text-sm text-gray-600 hover:underline">Batal</button>
+            </div>
         </div>
-        <button onclick="closeModal('general')" class="mt-4 text-sm text-blue-700 hover:underline">Batal</button>
-    </div>
-</div>
 
-<!-- Modal Registrasi Paddock -->
-<div id="modalPaddock" class="hidden fixed inset-0 bg-black/60 flex items-start justify-center z-50">
-    <div class="bg-blue-50 rounded-xl shadow-lg p-6 w-80 text-center space-y-5 animate-fade-in mt-20">
-        <h3 class="text-lg font-bold text-blue-800">Registrasi Paddock</h3>
-        <p class="text-sm text-blue-700">Anda akan diarahkan ke form pendaftaran Paddock.</p>
-        <div class="flex flex-col gap-3">
-            <a href="paddock.php?id_event=<?= $id_event ?>" class="bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg transition">Lanjutkan</a>
+        <!-- Modal Registrasi Paddock -->
+        <div id="modalPaddock" class="hidden fixed inset-0 bg-black/60 flex items-start justify-center z-50">
+            <div class="bg-white rounded-xl shadow-lg p-6 w-80 text-center space-y-5 animate-fade-in mt-20">
+                <h3 class="text-lg font-bold text-gray-800">Registrasi Paddock</h3>
+                <p class="text-sm text-gray-600">Anda akan diarahkan ke form pendaftaran Paddock.</p>
+                <div class="flex flex-col gap-3">
+                    <a href="paddock.php?id_event=<?= $id_event ?>" class="bg-gray-700 hover:bg-gray-800 text-white py-2 rounded-lg transition">Lanjutkan</a>
+                </div>
+                <button onclick="closeModal('paddock')" class="mt-4 text-sm text-gray-600 hover:underline">Batal</button>
+            </div>
         </div>
-        <button onclick="closeModal('paddock')" class="mt-4 text-sm text-blue-700 hover:underline">Batal</button>
     </div>
-</div>
 
-<script>
-    function openModal(type) {
-        if(type === 'general') document.getElementById('modalGeneral').classList.remove('hidden');
-        if(type === 'paddock') document.getElementById('modalPaddock').classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-    }
+    <script>
+        function openModal(type) {
+            if (type === 'general') document.getElementById('modalGeneral').classList.remove('hidden');
+            if (type === 'paddock') document.getElementById('modalPaddock').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
 
-    function closeModal(type) {
-        if(type === 'general') document.getElementById('modalGeneral').classList.add('hidden');
-        if(type === 'paddock') document.getElementById('modalPaddock').classList.add('hidden');
-        document.body.style.overflow = '';
-    }
+        function closeModal(type) {
+            if (type === 'general') document.getElementById('modalGeneral').classList.add('hidden');
+            if (type === 'paddock') document.getElementById('modalPaddock').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
 
-    document.addEventListener("DOMContentLoaded", () => {
-        lucide.createIcons();
-    });
-</script>
+        document.addEventListener("DOMContentLoaded", () => {
+            lucide.createIcons();
+        });
+    </script>
 
 </body>
+
 </html>
 <?php require './templates/footer.php'; ?>

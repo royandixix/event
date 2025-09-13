@@ -5,16 +5,16 @@ require_once __DIR__ . '/../../function/config.php';
 ?>
 
 
-<!-- Hero Section - Dark Blur Background -->
+<!-- Hero Section - Pink Blur Background -->
 <div class="relative min-h-screen w-full font-sans overflow-hidden">
-  <!-- Animated Dark Background -->
+  <!-- Animated Pink Background -->
   <div class="absolute inset-0 overflow-hidden">
     <div class="absolute inset-0 w-full h-full animate-bg-slide">
       <img src="./img/gambar.jpeg" alt="Background" 
            class="w-full h-full object-cover filter blur-sm scale-110" />
     </div>
-    <!-- Dark Overlay -->
-    <div class="absolute inset-0 bg-black/60"></div>
+    <!-- Pink Overlay -->
+    <div class="absolute inset-0 bg-pink-500/60 mix-blend-multiply"></div>
   </div>
 
   <!-- Content -->
@@ -26,39 +26,35 @@ require_once __DIR__ . '/../../function/config.php';
     <div class="max-w-2xl space-y-6">
       <h1 class="text-[clamp(1.6rem,4vw,3rem)] leading-tight drop-shadow-xl">
         Detail Acara<br />
-        <span class="text-gray-200">
+        <span class="text-pink-100">
           Event Drag Bike <?= htmlspecialchars($nama_event ?? '') ?>
         </span>
       </h1>
 
-      <p class="text-[clamp(1rem,2.2vw,1.2rem)] text-gray-200 leading-relaxed drop-shadow">
+      <p class="text-[clamp(1rem,2.2vw,1.2rem)] text-pink-100 leading-relaxed drop-shadow">
         Berikut adalah informasi lengkap untuk event ini — mulai dari jadwal, lokasi, kategori kelas, 
         hingga biaya pendaftaran. Pastikan Anda membaca seluruh detail sebelum mendaftar.
       </p>
 
       <a href="#daftar" 
-         class="inline-block mt-4 px-6 py-3 rounded-lg bg-white/10 hover:bg-white/20 
-         border border-white/20 backdrop-blur-md text-white text-sm transition duration-300">
+         class="inline-block mt-4 px-6 py-3 rounded-lg bg-pink-600/80 hover:bg-pink-700/90 
+         border border-pink-200/40 backdrop-blur-md text-white text-sm transition duration-300">
         Lanjut ke Form Pendaftaran
       </a>
     </div>
 
     <!-- Image Card -->
     <div class="mt-12 lg:mt-0 lg:ml-10 w-full max-w-sm rounded-2xl overflow-hidden shadow-lg 
-      bg-white/10 border border-white/20 backdrop-blur-md 
+      bg-pink-600/20 border border-pink-200/40 backdrop-blur-md 
       hover:shadow-lg hover:-translate-y-1 transition duration-300">
       <img src="./img/gambar.jpeg" alt="Event Drag Bike" class="w-full h-auto object-cover rounded-t-2xl" />
       <div class="p-6 text-white">
         <h3 class="text-lg mb-2">Info Event Lengkap</h3>
-        <p class="text-sm text-gray-200">
+        <p class="text-sm text-pink-100">
           Mulai dari kelas yang dilombakan, biaya pendaftaran, hingga link resmi pendaftaran online.
         </p>
       </div>
     </div>
-
-    
-
-
   </section>
 </div>
 

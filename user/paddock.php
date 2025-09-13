@@ -120,7 +120,7 @@ $slot_query = mysqli_query($db, "
     <title>Pendaftaran Paddock</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -129,49 +129,51 @@ $slot_query = mysqli_query($db, "
 </head>
 
 <body class="bg-gradient-to-r from-blue-200 via-white to-white min-h-screen">
-    <div class="container mx-auto px-4 py-8 max-w-6xl">
-        <h1 class="text-3xl  text-blue-800 mb-6 text-center drop-shadow-md">Form Pendaftaran Paddock</h1>
+    <div class="bg-gradient-to-r from-pink-200 via-white to-white">
+        <div class="container mx-auto px-4 py-8 max-w-6xl">
+            <h1 class="text-3xl  text-blue-800 mb-6 text-center drop-shadow-md">Form Pendaftaran Paddock</h1>
 
-        <form id="paddockForm" action="" method="POST" class="bg-white p-6 rounded-xl shadow-lg space-y-6 border border-gray-100">
-            <!-- DATA PENDAFTAR -->
-            <h2 class="text-lg  text-blue-800 bg-blue-100 px-5 py-2 rounded-full inline-block shadow-sm">
-                DATA PENDAFTAR
-            </h2>
-            <input type="text" name="nama_pesanan" placeholder="Nama Pesanan"
-                class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
-            <input type="text" name="nama_tim" placeholder="Nama Tim"
-                class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
-            <input type="text" name="nomor_wa" placeholder="Nomor WhatsApp"
-                class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
+            <form id="paddockForm" action="" method="POST" class="bg-white p-6 rounded-xl shadow-lg space-y-6 border border-gray-100">
+                <!-- DATA PENDAFTAR -->
+                <h2 class="text-lg  text-blue-800 bg-blue-100 px-5 py-2 rounded-full inline-block shadow-sm">
+                    DATA PENDAFTAR
+                </h2>
+                <input type="text" name="nama_pesanan" placeholder="Nama Pesanan"
+                    class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
+                <input type="text" name="nama_tim" placeholder="Nama Tim"
+                    class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
+                <input type="text" name="nomor_wa" placeholder="Nomor WhatsApp"
+                    class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
 
-            <!-- SLOT PADDOCK -->
-            <h2 class="text-lg  text-blue-800 bg-blue-100 px-5 py-2 rounded-full inline-block shadow-sm mt-4">
-                PILIH SLOT PADDOCK
-            </h2>
-            <div class="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-4 mt-4">
-                <?php while ($slot = mysqli_fetch_assoc($slot_query)) : ?>
-                    <?php if ($slot['status'] == 'terisi') : ?>
-                        <div class="bg-red-500 text-white p-4 rounded-lg text-center shadow cursor-not-allowed opacity-80"
-                            title="Diambil oleh: <?= htmlspecialchars($slot['nama_pesanan']) ?>">
-                            <?= htmlspecialchars($slot['nomor_slot']); ?>
-                        </div>
-                    <?php else: ?>
-                        <div onclick="pilihSlot(<?= $slot['id_slot']; ?>, this)"
-                            class="slot-item bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-lg text-center shadow-md cursor-pointer transition transform hover:-translate-y-1 hover:shadow-xl">
-                            <?= htmlspecialchars($slot['nomor_slot']); ?>
-                        </div>
-                    <?php endif; ?>
-                <?php endwhile; ?>
-            </div>
+                <!-- SLOT PADDOCK -->
+                <h2 class="text-lg  text-blue-800 bg-blue-100 px-5 py-2 rounded-full inline-block shadow-sm mt-4">
+                    PILIH SLOT PADDOCK
+                </h2>
+                <div class="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-4 mt-4">
+                    <?php while ($slot = mysqli_fetch_assoc($slot_query)) : ?>
+                        <?php if ($slot['status'] == 'terisi') : ?>
+                            <div class="bg-red-500 text-white p-4 rounded-lg text-center shadow cursor-not-allowed opacity-80"
+                                title="Diambil oleh: <?= htmlspecialchars($slot['nama_pesanan']) ?>">
+                                <?= htmlspecialchars($slot['nomor_slot']); ?>
+                            </div>
+                        <?php else: ?>
+                            <div onclick="pilihSlot(<?= $slot['id_slot']; ?>, this)"
+                                class="slot-item bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-lg text-center shadow-md cursor-pointer transition transform hover:-translate-y-1 hover:shadow-xl">
+                                <?= htmlspecialchars($slot['nomor_slot']); ?>
+                            </div>
+                        <?php endif; ?>
+                    <?php endwhile; ?>
+                </div>
 
-            <input type="hidden" name="slot_id" id="slot_id">
+                <input type="hidden" name="slot_id" id="slot_id">
 
-            <!-- BUTTON -->
-            <button type="submit"
-                class="bg-blue-600 hover:bg-blue-800 text-white font-semibold px-6 py-3 rounded-lg shadow-md transition transform hover:-translate-y-1">
-                Submit Pendaftaran
-            </button>
-        </form>
+                <!-- BUTTON -->
+                <button type="submit" 
+                    class="bg-blue-600 hover:bg-blue-800 text-white font-semibold px-6 py-3 rounded-lg shadow-md transition transform hover:-translate-y-1">
+                    Submit Pendaftaran
+                </button>
+            </form>
+        </div>
     </div>
 
 

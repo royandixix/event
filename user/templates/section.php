@@ -4,7 +4,7 @@ ini_set('display_errors', 1);
 require_once __DIR__ . '/../../function/config.php';
 ?>
 
-<section class="bg-gradient-to-r from-blue-200 via-white to-white pt-24 pb-16 px-4 lg:px-16">
+<section class="bg-gradient-to-r from-pink-200 via-white to-white pt-24 pb-16 px-4 lg:px-16">
   <div class="max-w-7xl mx-auto flex flex-col-reverse lg:flex-row gap-10 items-start">
 
     <!-- Grid Card -->
@@ -13,7 +13,7 @@ require_once __DIR__ . '/../../function/config.php';
       <!-- Card 1 -->
       <div class="card group bg-white p-6 rounded-2xl shadow-lg cursor-pointer relative overflow-hidden">
         <div class="mb-4">
-          <svg class="h-12 w-12 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg class="h-12 w-12 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M18.364 5.636a9 9 0 11-12.728 0M15 11a3 3 0 11-6 0" />
           </svg>
@@ -22,7 +22,7 @@ require_once __DIR__ . '/../../function/config.php';
         <p class="text-sm text-gray-500">
           Kejuaraan Drag Race Nasional Seri 2 — Sentul International Circuit. Aksi kecepatan tinggi mobil-mobil balap terbaik!
         </p>
-        <div class="absolute top-3 right-3 bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded shadow-lg">
+        <div class="absolute top-3 right-3 bg-pink-100 text-pink-800 text-sm px-3 py-1 rounded shadow-lg">
           Siap Gaspol!
         </div>
       </div>
@@ -85,10 +85,10 @@ require_once __DIR__ . '/../../function/config.php';
 
         <!-- Image Section -->
         <div class="relative">
-          <img src="./img/gambar.jpeg" alt="BRIDE Drag Race Mobil"
+          <img src="./img/baru.jpeg" alt="BRIDE Drag Race Mobil"
             class="w-full h-full object-cover aspect-video lg:aspect-auto" />
           <!-- Overlay Badge -->
-          <span class="absolute top-4 left-4 bg-blue-600 text-white text-xs font-semibold uppercase px-3 py-1 rounded-full shadow-lg tracking-wider">
+          <span class="absolute top-4 left-4 bg-pink-600 text-white text-xs font-semibold uppercase px-3 py-1 rounded-full shadow-lg tracking-wider">
             Drag Race Mobil
           </span>
         </div>
@@ -96,7 +96,7 @@ require_once __DIR__ . '/../../function/config.php';
         <!-- Content Section -->
         <div class="p-6 sm:p-8 space-y-4 flex flex-col justify-center">
           <!-- Tag -->
-          <div class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold uppercase px-3 py-1 rounded-full shadow-sm tracking-wide">
+          <div class="inline-block bg-pink-100 text-pink-800 text-xs font-semibold uppercase px-3 py-1 rounded-full shadow-sm tracking-wide">
             Event Nasional
           </div>
 
@@ -108,11 +108,11 @@ require_once __DIR__ . '/../../function/config.php';
           <!-- Info List -->
           <ul class="text-sm text-gray-600 space-y-1">
             <li>
-              <i data-lucide="calendar" class="inline w-4 h-4 text-blue-500 mr-2"></i>
+              <i data-lucide="calendar" class="inline w-4 h-4 text-pink-500 mr-2"></i>
               5–6 Juli 2025
             </li>
             <li>
-              <i data-lucide="map-pin" class="inline w-4 h-4 text-blue-500 mr-2"></i>
+              <i data-lucide="map-pin" class="inline w-4 h-4 text-pink-500 mr-2"></i>
               Sentul International Circuit
             </li>
           </ul>
@@ -124,7 +124,7 @@ require_once __DIR__ . '/../../function/config.php';
 
           <!-- CTA Button -->
           <a href="event.php"
-            class="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg shadow-md w-max hover:bg-blue-700 transition">
+            class="inline-flex items-center justify-center px-4 py-2 bg-pink-600 text-white text-sm font-semibold rounded-lg shadow-md w-max hover:bg-pink-700 transition">
             Lihat Detail Event
             <i data-lucide="arrow-right" class="ml-2 w-4 h-4"></i>
           </a>

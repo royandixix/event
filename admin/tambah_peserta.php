@@ -16,11 +16,10 @@ if (isset($_POST['simpan'])) {
     $kelas           = trim($_POST['kelas']);
     $warna_kendaraan = trim($_POST['warna_kendaraan']);
     $tipe_kendaraan  = trim($_POST['tipe_kendaraan']);
-    $nomor_polisi    = trim($_POST['nomor_polisi']);
 
     // Validasi
     if (empty($nama_peserta) || empty($email) || empty($no_hp) || empty($id_event) || empty($kelas) || empty($warna_kendaraan) || empty($tipe_kendaraan)) {
-        $error = "Semua field wajib diisi (nomor polisi opsional).";
+        $error = "Semua field wajib diisi.";
     }
 
     if (!$error) {
@@ -31,11 +30,13 @@ if (isset($_POST['simpan'])) {
         if ($stmt->execute()) {
             $id_peserta_baru = $db->insert_id;
 
-            // Insert ke tabel peserta_kelas
-            $stmt2 = $db->prepare("INSERT INTO peserta_kelas (peserta_id, kelas, warna_kendaraan, tipe_kendaraan, nomor_polisi) VALUES (?, ?, ?, ?, ?)");
-            $stmt2->bind_param("issss", $id_peserta_baru, $kelas, $warna_kendaraan, $tipe_kendaraan, $nomor_polisi);
+            // Insert ke tabel peserta_kelas tanpa nomor polisi
+            $stmt2 = $db->prepare("INSERT INTO peserta_kelas (peserta_id, kelas, warna_kendaraan, tipe_kendaraan) VALUES (?, ?, ?, ?)");
+            $stmt2->bind_param("isss", $id_peserta_baru, $kelas, $warna_kendaraan, $tipe_kendaraan);
             $stmt2->execute();
+            $stmt2->close();
 
+            echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>";
             echo "<script>
                 Swal.fire({
                     icon: 'success',
@@ -47,9 +48,12 @@ if (isset($_POST['simpan'])) {
         } else {
             $error = "Gagal menambahkan peserta.";
         }
+
+        $stmt->close();
     }
 
     if ($error) {
+        echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>";
         echo "<script>
             Swal.fire({
                 icon: 'error',
@@ -60,6 +64,7 @@ if (isset($_POST['simpan'])) {
     }
 }
 ?>
+
 
 <div class="content">
     <div class="container" style="max-width: 800px;">
@@ -121,11 +126,7 @@ if (isset($_POST['simpan'])) {
                 <input type="text" class="form-control" name="tipe_kendaraan" required>
             </div>
 
-            <!-- Nomor Polisi -->
-            <div class="mb-3">
-                <label class="form-label">Nomor Polisi (opsional)</label>
-                <input type="text" class="form-control" name="nomor_polisi">
-            </div>
+          
 
             <button type="submit" name="simpan" class="btn btn-primary">Simpan Peserta</button>
             <a href="data_peserta.php" class="btn btn-secondary">Kembali</a>

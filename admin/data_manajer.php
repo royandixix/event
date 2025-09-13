@@ -3,11 +3,16 @@ include '../function/config.php';
 include 'templates/header.php';
 include 'templates/sidebar.php';
 
-// Ambil semua manajer
-$manajer = mysqli_fetch_all(
-    mysqli_query($db, "SELECT * FROM manajer ORDER BY created_at DESC"),
-    MYSQLI_ASSOC
-);
+// Ambil semua manajer yang sudah LUNAS
+$manajerQuery = "
+    SELECT m.* 
+    FROM manajer m
+    INNER JOIN invoice i ON m.id_manajer = i.id_manajer
+    WHERE i.status = 'lunas'
+    ORDER BY m.created_at DESC
+";
+$manajerResult = mysqli_query($db, $manajerQuery);
+$manajer = mysqli_fetch_all($manajerResult, MYSQLI_ASSOC);
 
 // Ambil semua kelas manajer dan kelompokkan per manajer
 $kelasResult = mysqli_query($db, "SELECT * FROM manajer_kelas");
@@ -26,20 +31,31 @@ while ($kelasRow = mysqli_fetch_assoc($kelasResult)) {
                 Halaman Data Manajer
             </h1>
             <p class="mt-3 fs-5 text-muted" style="line-height: 1.8;">
-                Menampilkan daftar manajer beserta detail kelas dan kendaraan.
+                Menampilkan daftar manajer yang sudah lunas beserta detail kelas dan kendaraan.
             </p>
         </section>
 
-        <div class="mb-3">
-            <a href="tambah_manajer.php">
-            <button type="button" class="btn btn-primary shadow-sm">
-                <i class="fas fa-plus-circle me-2"></i> Tambah Manajer
-            </button>
+        <div class="mb-3 d-flex gap-2 flex-wrap tombol-group">
+            <a href="tambah_manajer.php" class="btn btn-primary d-flex align-items-center gap-2">
+                <i class="fas fa-plus-circle"></i> Tambah Manajer
+            </a>
+
+            <a href="cetak_manajer_pdf.php" target="_blank" class="btn btn-danger d-flex align-items-center gap-2">
+                <i class="fas fa-file-pdf"></i> Cetak PDF
+            </a>
+
+            <a href="cetak_manajer_excel.php" target="_blank" class="btn btn-success d-flex align-items-center gap-2">
+                <i class="fas fa-file-excel"></i> Cetak Excel
             </a>
         </div>
 
+        <!-- Input Search -->
+        <div class="mb-3">
+            <input type="text" id="searchInput" class="form-control" placeholder="Cari nama, tim, email, provinsi...">
+        </div>
+
         <div class="table-responsive">
-            <table class="table custom-table">
+            <table class="table custom-table" id="manajerTable">
                 <thead>
                     <tr>
                         <th>No</th>
@@ -54,16 +70,17 @@ while ($kelasRow = mysqli_fetch_assoc($kelasResult)) {
                 </thead>
                 <tbody>
                     <?php if (!empty($manajer)): ?>
-                        <?php $no = 1; foreach ($manajer as $m): ?>
+                        <?php $no = 1;
+                        foreach ($manajer as $m): ?>
                             <tr>
                                 <td><?= $no++ ?></td>
-                                <td><?= htmlspecialchars($m['nama_manajer']) ?></td>
-                                <td><?= htmlspecialchars($m['nama_tim']) ?></td>
-                                <td>
+                                <td class="searchable"><?= htmlspecialchars($m['nama_manajer']) ?></td>
+                                <td class="searchable"><?= htmlspecialchars($m['nama_tim']) ?></td>
+                                <td class="searchable">
                                     <?= htmlspecialchars($m['email']) ?><br>
                                     <?= htmlspecialchars($m['whatsapp']) ?>
                                 </td>
-                                <td><?= htmlspecialchars($m['asal_provinsi']) ?></td>
+                                <td class="searchable"><?= htmlspecialchars($m['asal_provinsi']) ?></td>
                                 <td>
                                     <?php if (!empty($m['foto_manajer'])): ?>
                                         <img src="../uploads/foto_manajer/<?= htmlspecialchars($m['foto_manajer']) ?>" alt="Foto Manajer" style="width:60px; border-radius:5px;">
@@ -90,7 +107,7 @@ while ($kelasRow = mysqli_fetch_assoc($kelasResult)) {
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="8" class="text-center">Tidak ada data manajer</td>
+                            <td colspan="8" class="text-center">Tidak ada manajer lunas</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
@@ -118,7 +135,6 @@ while ($kelasRow = mysqli_fetch_assoc($kelasResult)) {
                                                 <th>Kelas</th>
                                                 <th>Warna Kendaraan</th>
                                                 <th>Tipe Kendaraan</th>
-                                                <th>Nomor Polisi</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -127,7 +143,6 @@ while ($kelasRow = mysqli_fetch_assoc($kelasResult)) {
                                                     <td><?= htmlspecialchars($k['kelas']) ?></td>
                                                     <td><?= htmlspecialchars($k['warna_kendaraan']) ?></td>
                                                     <td><?= htmlspecialchars($k['tipe_kendaraan']) ?></td>
-                                                    <td><?= htmlspecialchars($k['nomor_polisi']) ?></td>
                                                 </tr>
                                             <?php endforeach; ?>
                                         </tbody>
@@ -140,7 +155,8 @@ while ($kelasRow = mysqli_fetch_assoc($kelasResult)) {
                         </div>
                     </div>
                 </div>
-        <?php endif; endforeach; ?>
+        <?php endif;
+        endforeach; ?>
 
     </div>
 </div>
@@ -162,6 +178,26 @@ while ($kelasRow = mysqli_fetch_assoc($kelasResult)) {
             }
         });
     }
+
+    // Live Search
+    document.addEventListener("DOMContentLoaded", function() {
+        const searchInput = document.getElementById('searchInput');
+        const table = document.getElementById('manajerTable');
+        const rows = table.querySelectorAll('tbody tr');
+
+        searchInput.addEventListener('keyup', function() {
+            const filter = searchInput.value.toLowerCase();
+
+            rows.forEach(row => {
+                const searchableCells = row.querySelectorAll('.searchable');
+                let match = false;
+                searchableCells.forEach(cell => {
+                    if (cell.textContent.toLowerCase().includes(filter)) match = true;
+                });
+                row.style.display = match ? '' : 'none';
+            });
+        });
+    });
 </script>
 
 <?php include 'templates/footer.php'; ?>

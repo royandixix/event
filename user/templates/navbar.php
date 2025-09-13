@@ -29,7 +29,7 @@ require_once __DIR__ . '/../../function/config.php';
           <img src="./img/logo.png" 
                alt="Logo" class="h-8 w-auto">
           <span class="text-gray-800 dark:text-white font-semibold text-lg tracking-wide transition-colors duration-300">
-            MyBrand
+          ta bangka gasss#2
           </span>
         </a>
       </div>
